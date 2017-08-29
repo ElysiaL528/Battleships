@@ -1,13 +1,13 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  Table [dbo].[Ships]    Script Date: 8/28/2017 3:00:22 PM ******/
+/****** Object:  Table [dbo].[Ships]    Script Date: 8/29/2017 11:28:38 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Ships](
-	[ShipID] [int] IDENTITY(1,1) NOT NULL,
-	[ShipName] [varchar](20) NOT NULL,
+	[ShipID] [int] NOT NULL,
+	[ShipName] [varchar](16) NOT NULL,
 	[ShipLength] [int] NOT NULL,
 	[isSunk] [bit] NOT NULL,
  CONSTRAINT [PK_Ships] PRIMARY KEY CLUSTERED 
