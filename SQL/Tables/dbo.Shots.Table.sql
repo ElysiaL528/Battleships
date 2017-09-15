@@ -1,6 +1,6 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  Table [dbo].[Shots]    Script Date: 8/30/2017 11:50:27 AM ******/
+/****** Object:  Table [dbo].[Shots]    Script Date: 9/15/2017 2:48:46 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -9,8 +9,8 @@ CREATE TABLE [dbo].[Shots](
 	[ShotID] [int] IDENTITY(1,1) NOT NULL,
 	[UserID] [int] NOT NULL,
 	[RoomID] [int] NOT NULL,
-	[X] [int] NOT NULL,
-	[Y] [int] NOT NULL,
+	[X] [tinyint] NOT NULL,
+	[Y] [tinyint] NOT NULL,
 	[isHit] [bit] NOT NULL,
  CONSTRAINT [PK_Shots] PRIMARY KEY CLUSTERED 
 (
