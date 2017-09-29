@@ -4,10 +4,12 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
+using System.Web.Http;
 
 namespace ElysiaBattleshipsWebAPI.Controllers
 {
-    public class RoomController
+    [RoutePrefix("api/Room")]
+    public class RoomController : ApiController 
     {
 
         #region connectionstring
@@ -21,6 +23,9 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// </summary>
         /// <param name="Username"></param>
 
+
+        [HttpPost]
+        [Route("Register/{Username}")]
         public void CreateUser(string Username)
         {
             command.Parameters.Clear();
@@ -37,6 +42,10 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// </summary>
         /// <param name="RoomName"></param>
         /// <param name="UserID"></param>
+        /// 
+
+        [HttpPost]
+        [Route("CreateRoom/{RoomName}")]
         public void CreateRoom(string RoomName, int UserID)
         {
             command.Parameters.Clear();
@@ -53,6 +62,8 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// </summary>
         /// <returns></returns>
 
+        [HttpGet]
+        [Route("GetRooms")]
         public DataTable GetRooms()
         {
             command.Parameters.Clear();
@@ -70,6 +81,9 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <param name="RoomID"></param>
         /// <param name="UserID"></param>
         /// <returns></returns>
+
+        [HttpPost]
+        [Route("Join/{RoomID}")]
         public DataTable JoinRoom(int RoomID, int UserID)
         {
             command.Parameters.Clear();
@@ -84,7 +98,9 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// Gets the RoomID, RoomName, HostPlayerID, JoinedPlayerID, and both user ready statuses of a room
         /// </summary>
         /// <param name="RoomID"></param>
-        /// <returns></returns>
+        /// <returns></returns>        
+        [HttpPost]
+        [Route("GetRoomInfo/{RoomID}")]
         public DataTable GetRoomInfo(int RoomID)
         {
             command.Parameters.Clear();
