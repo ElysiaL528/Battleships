@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ElysiaBattleshipsWebAPI.Models;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -25,16 +26,18 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
 
         [HttpPost]
-        [Route("Register/{Username}")]
-        public void CreateUser(string Username)
+        [Route("Register")]
+        public void CreateUser([FromBody]User user)
         {
             command.Parameters.Clear();
+            command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_CreateUser";
-            command.Parameters.Add(new SqlParameter("Username", Username));
+            command.Parameters.Add(new SqlParameter("Username", user.Username));
+            command.Connection = connection;
+
             connection.Open();
             command.ExecuteScalar();
             connection.Close();
-
         }
 
         /// <summary>
@@ -45,13 +48,16 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// 
 
         [HttpPost]
-        [Route("CreateRoom/{RoomName}")]
-        public void CreateRoom(string RoomName, int UserID)
+        [Route("CreateRoom")]
+        public void CreateRoom([FromBody]Room room)
         {
             command.Parameters.Clear();
+            command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_CreateRoom";
-            command.Parameters.Add(new SqlParameter("RoomName", RoomName));
-            command.Parameters.Add(new SqlParameter("UserID", UserID));
+            command.Parameters.Add(new SqlParameter("RoomName", room.RoomName));
+            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+            command.Connection = connection;
+
             connection.Open();
             command.ExecuteScalar();
             connection.Close();
@@ -67,7 +73,9 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         public DataTable GetRooms()
         {
             command.Parameters.Clear();
+            command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_GetRooms";
+            command.Connection = connection;
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
@@ -83,15 +91,20 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <returns></returns>
 
         [HttpPost]
-        [Route("Join/{RoomID}")]
-        public DataTable JoinRoom(int RoomID, int UserID)
+        [Route("Join")]
+        public DataTable JoinRoom([FromBody]Room room)
         {
             command.Parameters.Clear();
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
             command.CommandText = "usp_JoinRoom";
+            command.Connection = connection;
+            connection.Open();
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
-
+            connection.Close();
             return table;
         }
         /// <summary>
@@ -100,14 +113,19 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <param name="RoomID"></param>
         /// <returns></returns>        
         [HttpPost]
-        [Route("GetRoomInfo/{RoomID}")]
-        public DataTable GetRoomInfo(int RoomID)
+        [Route("GetRoomInfo")]
+        public DataTable GetRoomInfo([FromBody]Room room)
         {
             command.Parameters.Clear();
-            command.Parameters.Add(new SqlParameter("RoomID", RoomID));
+            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = "usp_GetRoomInfo";
+            command.Connection = connection;
+            connection.Open();
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
+            connection.Close();
 
             return table;
         }

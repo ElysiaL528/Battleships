@@ -4,10 +4,13 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
+using System.Web.Http;
 
 namespace ElysiaBattleshipsWebAPI.Controllers
 {
-    public class GameController
+    [RoutePrefix("api/Game")]
+
+    public class GameController :   ApiController 
     {
         
         #region connectionstring
@@ -15,15 +18,9 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         #endregion
         static SqlConnection connection = new SqlConnection(connectionstring);
 
-        public enum ShipNames
-        {
-            AircraftCarrier = 1,
-            Battleship = 2, 
-            Cruiser = 3,
-            Submarine = 4,
-            Destroyer = 5
-        }
-
+        
+        [Route("PlaceShip")]
+        [HttpPost]
         public bool placeShip(int roomID, int userID, int startX, int startY, ShipNames shipName, int orientation)
         {
             bool isValid = true;
