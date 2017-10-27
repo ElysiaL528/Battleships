@@ -1,6 +1,6 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  Table [dbo].[Rooms]    Script Date: 8/30/2017 11:50:27 AM ******/
+/****** Object:  Table [dbo].[Rooms]    Script Date: 10/27/2017 11:47:36 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -12,6 +12,7 @@ CREATE TABLE [dbo].[Rooms](
 	[JoinedPlayerID] [int] NULL,
 	[isHostPlayerReady] [bit] NOT NULL,
 	[isJoinedPlayerReady] [bit] NOT NULL,
+	[isTestData] [bit] NULL,
  CONSTRAINT [PK_Rooms] PRIMARY KEY CLUSTERED 
 (
 	[RoomID] ASC

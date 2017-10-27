@@ -1,6 +1,6 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  Table [dbo].[UserShips]    Script Date: 9/22/2017 2:47:42 PM ******/
+/****** Object:  Table [dbo].[UserShips]    Script Date: 10/27/2017 12:46:51 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -12,7 +12,9 @@ CREATE TABLE [dbo].[UserShips](
 	[X] [tinyint] NOT NULL,
 	[Y] [tinyint] NOT NULL,
 	[ShipOrientationID] [tinyint] NOT NULL,
-	[isSunk] [bit] NULL,
+	[isSunk] [bit] NOT NULL,
+	[HitCount] [int] NOT NULL,
+	[isTestData] [bit] NULL,
  CONSTRAINT [PK_UserShips] PRIMARY KEY CLUSTERED 
 (
 	[ShipID] ASC,
