@@ -1,6 +1,6 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  Table [dbo].[ShipOrientations]    Script Date: 9/22/2017 2:47:42 PM ******/
+/****** Object:  Table [dbo].[ShipOrientations]    Script Date: 11/3/2017 12:44:41 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON

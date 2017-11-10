@@ -1,15 +1,20 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_JoinRoom]    Script Date: 9/22/2017 2:47:42 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_JoinRoom]    Script Date: 11/3/2017 12:44:41 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+
 CREATE PROC [dbo].[usp_JoinRoom]
 	@UserID int
 ,	@RoomID int
 as	
+DECLARE @HostPlayerID int = (SELECT HostPlayerID FROM Rooms WHERE RoomID = @RoomID)
+
+IF @UserID != @HostPlayerID
+BEGIN
 	SELECT RoomID
 	FROM Rooms
 	WHERE RoomID = @RoomID
@@ -40,5 +45,6 @@ as
 	ON		Rooms.HostPlayerID		=	hp.UserID
 	WHERE RoomID	=	@RoomID
 	AND		jp.UserID	=	Rooms.JoinedPlayerID
+END
 
 GO
