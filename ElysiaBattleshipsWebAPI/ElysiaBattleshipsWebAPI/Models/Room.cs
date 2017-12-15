@@ -8,8 +8,9 @@ namespace ElysiaBattleshipsWebAPI.Models
     public class Room
     {
         public string RoomName { get; set; }
-        public string PlayerID { get; set; }
-
+        public int PlayerID { get; set; }
         public int RoomID { get; set; }
+
+        public int LastShotID { get; set; }
     }
 }

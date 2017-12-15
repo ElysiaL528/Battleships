@@ -120,6 +120,9 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             return table;
         }
 
+        [HttpPost]
+        [Route("NewShots")]
+
         public DataTable checkForShots([FromBody]Room room)
         {
             SqlCommand command = new SqlCommand();
@@ -137,6 +140,9 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             return table;
         }
 
+        [HttpPost]
+        [Route("CheckReady")]
+
         public DataTable checkPlayersReady([FromBody]Room room)
         {
             SqlCommand command = new SqlCommand();
@@ -153,6 +159,9 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             return table;
 
         }
+
+        [HttpPost]
+        [Route("SetReady")]
 
         public DataTable setPlayerReady([FromBody]Room room)
         {

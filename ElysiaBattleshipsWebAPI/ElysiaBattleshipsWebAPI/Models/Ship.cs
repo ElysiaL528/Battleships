@@ -28,5 +28,9 @@ namespace ElysiaBattleshipsWebAPI.Models
         ShipOrientations ShipOrientation { get; set; }
         int startX { get; set; }
         int startY { get; set; }
+
+        int userID { get; set; }
+
+        int roomID { get; set; }
     }
 }
