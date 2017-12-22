@@ -29,12 +29,12 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         [HttpPost]
         [Route("Register")]
-        public int CreateUser([FromBody]User user)
+        public int CreateUser([FromBody]string user)
         {
             command.Parameters.Clear();
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_CreateUser";
-            command.Parameters.Add(new SqlParameter("Username", user.Username));
+            command.Parameters.Add(new SqlParameter("Username", user));
             command.Connection = connection;
 
             connection.Open();
