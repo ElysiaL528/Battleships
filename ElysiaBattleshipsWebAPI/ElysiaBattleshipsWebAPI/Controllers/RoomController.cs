@@ -29,12 +29,13 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         [HttpPost]
         [Route("Register")]
-        public int CreateUser([FromBody]string user)
+        public int CreateUser([FromBody]User user)
         {
             command.Parameters.Clear();
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_CreateUser";
-            command.Parameters.Add(new SqlParameter("Username", user));
+            command.Parameters.Add(new SqlParameter("Username", user.Username));
+            command.Parameters.Add(new SqlParameter("IsTestData", user.IsTestData));
             command.Connection = connection;
 
             connection.Open();
@@ -42,8 +43,6 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             connection.Close();
 
             return result;
-
-            
         }
 
         /// <summary>
@@ -55,18 +54,21 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         [HttpPost]
         [Route("CreateRoom")]
-        public void CreateRoom([FromBody]Room room)
+        public int CreateRoom([FromBody]Room room)
         {
             command.Parameters.Clear();
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_CreateRoom";
             command.Parameters.Add(new SqlParameter("RoomName", room.RoomName));
             command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+            command.Parameters.Add(new SqlParameter("IsTestData", room.IsTestData));
             command.Connection = connection;
 
             connection.Open();
-            command.ExecuteScalar();
+            var result = Convert.ToInt32(command.ExecuteScalar());
             connection.Close();
+
+            return result;
         }
 
         /// <summary>
@@ -76,7 +78,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         [HttpGet]
         [Route("GetRooms")]
-        public DataTable GetRooms()
+        public List<Room> GetRooms()
         {
             command.Parameters.Clear();
             command.CommandType = CommandType.StoredProcedure;
@@ -86,7 +88,21 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
 
-            return table;
+            var roomsList = new List<Room>();
+
+            foreach(DataRow room in table.Rows)
+            {
+                string roomName = room["RoomName"].ToString();
+                string hostName = room["Username"].ToString();
+
+                int hostID = Convert.ToInt32(room["HostPlayerID"]);
+                int roomID = Convert.ToInt32(room["RoomID"]);
+
+                Room newRoom = new Room(roomID, roomName, hostName, hostID, false);
+                roomsList.Add(newRoom);
+            }
+
+            return roomsList;
         }
 
         /// <summary>

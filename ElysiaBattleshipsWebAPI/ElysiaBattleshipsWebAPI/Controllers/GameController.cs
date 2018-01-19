@@ -6,9 +6,11 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace ElysiaBattleshipsWebAPI.Controllers
 {
+    [EnableCors("*", "*", "*")]
     [RoutePrefix("api/Game")]
 
     public class GameController :   ApiController 
@@ -91,6 +93,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.Parameters.Add(new SqlParameter("RoomID", roomID));
             command.Parameters.Add(new SqlParameter("ShotX", inputX));
             command.Parameters.Add(new SqlParameter("ShotY", inputY));
+            command.Parameters.Add(new SqlParameter("IsTestData", 0));
 
             connection.Open();
             var result = command.ExecuteScalar();

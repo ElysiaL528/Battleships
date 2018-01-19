@@ -9,5 +9,13 @@ namespace ElysiaBattleshipsWebAPI.Models
     {
         public int Id { get; set; }
         public string Username { get; set; }
+        public bool IsTestData { get; set; }
+
+        public User(int id, string username, bool isTestData)
+        {
+            Id = id;
+            Username = username;
+            IsTestData = isTestData;
+        }
     }
 }
