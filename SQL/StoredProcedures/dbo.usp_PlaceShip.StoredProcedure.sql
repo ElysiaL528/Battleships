@@ -1,10 +1,14 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 11/10/2017 12:47:00 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 2/9/2018 12:40:24 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
+
+
+
 CREATE PROC [dbo].[usp_PlaceShip]
 	@UserID				int
 ,	@RoomID				int
@@ -14,7 +18,7 @@ CREATE PROC [dbo].[usp_PlaceShip]
 ,	@ShipOrientationID	int
 as
 
-DECLARE @ErrorMessage varchar(20)		
+DECLARE @ErrorMessage varchar(21)		
 
 DECLARE	@EndX	int
 DECLARE	@EndY	int
@@ -40,56 +44,68 @@ AND us.RoomID = @RoomID
 SET @EndX	=	@X + (@shipLength - 1) * @changeX
 SET @EndY	=	@Y + (@shipLength - 1) * @changeY
 
-IF (@EndX > 10 OR @EndX < 0) OR (@EndY > 10 OR @EndY < 0)
-BEGIN
-	SET @ErrorMessage = 'Off the board'
-END
+DECLARE @HostPlayerID int = (SELECT HostPlayerID FROM Rooms WHERE RoomID = @RoomID)
+DECLARE @JoinedPlayerID int = (SELECT JoinedPlayerID FROM Rooms WHERE RoomID = @RoomID)
+
+
+IF (@HostPlayerID != @UserID AND @JoinedPlayerID != @UserID)
+	BEGIN
+	SET @ErrorMessage = 'Player is not in room'
+	END
 ELSE
 BEGIN
-
-IF @EndX < @X
-BEGIN
-	DECLARE @tempX int = @EndX
-	SET @EndX = @X
-	SET @X = @tempX
-END
-
-IF @EndY < @Y
-BEGIN
-	DECLARE @tempY int = @EndY
-	SET @EndY = @Y
-	SET @Y = @tempY
-END
-
-if NOT EXISTS(SELECT ShipID FROM UserShips WHERE UserID = @UserID AND RoomID = @RoomID AND ShipID = @ShipID)
+	IF (@EndX > 10 OR @EndX < 0) OR (@EndY > 10 OR @EndY < 0)
+	BEGIN
+		SET @ErrorMessage = 'Off the board'
+	END
+	ELSE
 	BEGIN
 
-	DECLARE	@StartCoordIsOverlapping	int =	(SELECT ShipID
-										FROM	UserShips WHERE (dbo.fn_intersects(@UserID, @RoomID, ShipID, @X, @Y))= 1)
+	IF @EndX < @X
+	BEGIN
+		DECLARE @tempX int = @EndX
+		SET @EndX = @X
+		SET @X = @tempX
+	END
 
-	DECLARE	@EndCoordIsOverlapping	int =	(SELECT ShipID
-										FROM	UserShips WHERE (dbo.fn_intersects(@UserID, @RoomID, ShipID, @EndX, @EndY)) = 1)
-
-	IF(@StartCoordIsOverlapping IS NULL AND @EndCoordIsOverlapping IS NULL)
+	IF @EndY < @Y
+	BEGIN
+		DECLARE @tempY int = @EndY
+		SET @EndY = @Y
+		SET @Y = @tempY
+	END
+	if NOT EXISTS(SELECT ShipID FROM UserShips WHERE UserID = @UserID AND RoomID = @RoomID AND ShipID = @ShipID)
 		BEGIN
-			INSERT INTO UserShips
-			VALUES (@ShipID, @UserID, @RoomID, @X, @Y, @ShipOrientationID, 0, 0)
 
-			SET @ErrorMessage = 'Placed ship'
+		DECLARE	@StartCoordIsOverlapping	int =	(SELECT TOP 1 ShipID
+											FROM	UserShips WHERE (dbo.fn_intersects(@UserID, @RoomID, ShipID, @X, @Y))= 1 AND RoomID = @RoomID)
+
+		DECLARE	@EndCoordIsOverlapping	int =	(SELECT TOP 1 ShipID
+											FROM	UserShips WHERE (dbo.fn_intersects(@UserID, @RoomID, ShipID, @EndX, @EndY)) = 1 AND RoomID = @RoomID)
+
+		IF(@StartCoordIsOverlapping IS NULL AND @EndCoordIsOverlapping IS NULL)
+			BEGIN
+				INSERT INTO UserShips
+				VALUES (@ShipID, @UserID, @RoomID, @X, @Y, @ShipOrientationID, 0, 0, 0)
+
+				SET @ErrorMessage = 'Placed ship'
+			END
+		ELSE
+			BEGIN
+				SET @ErrorMessage = 'Overlapping ship'
+			END
 		END
 	ELSE
 		BEGIN
-			SET @ErrorMessage = 'Overlapping ship'
+			SET @ErrorMessage = 'Pre-existing ship'
 		END
-	END
-else
-	BEGIN
-		SET @ErrorMessage = 'Pre-existing ship'
-	END
 
-	
+	--SELECT dbo.fn_intersects(2, 22, ShipID, 1, 1), RoomID, UserID FROM UserShips
 
+	END
 END
+
 SELECT @ErrorMessage
+
 
 GO
