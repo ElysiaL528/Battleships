@@ -11,19 +11,19 @@ using System.Threading.Tasks;
 namespace ElysiaBattleshipsWebAPI.Tests
 {
     [TestClass]
-    public class RoomControllerTests
+    public class RoomControllerTests //Debug DeleteTestData stored proc & fix PlaceShipTest
     {
+        #region connectionstring
+        static string connectionString = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24";
+        #endregion
+
+        public static SqlConnection sqlConnection = new SqlConnection(connectionString);
+        SqlCommand command = new SqlCommand();
+
         [TestMethod]
         public void RegisterTest()
         {
-            #region connectionstring
-             string connectionString = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24";
-            #endregion
-
-             SqlConnection sqlConnection = new SqlConnection(connectionString);
-             SqlCommand command = new SqlCommand();
             var roomController = new RoomController();
-
             Random random = new Random();
 
             var user = new User(1, "TestUser" + random.Next(9999, 99999), true);
@@ -35,7 +35,10 @@ namespace ElysiaBattleshipsWebAPI.Tests
             //Delete test data
             command.CommandText = "usp_DeleteTestData";
             command.CommandType = System.Data.CommandType.StoredProcedure;
+            command.Connection = sqlConnection;
+            sqlConnection.Open();
             command.ExecuteScalar();
+            sqlConnection.Close();
         }
 
         [TestMethod]
@@ -57,7 +60,10 @@ namespace ElysiaBattleshipsWebAPI.Tests
         {
             var roomController = new RoomController();
 
-            
+            Room room = new Room(2, "", "", 11, true);
+            var result = roomController.JoinRoom(room);
+
+            Assert.AreNotEqual(null, result);
         }
 
     }

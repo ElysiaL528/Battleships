@@ -24,7 +24,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <summary>
         /// Creates a new user
         /// </summary>
-        /// <param name="Username"></param>
+        /// <param name="user"></param>
 
 
         [HttpPost]
@@ -48,8 +48,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <summary>
         /// Creates a new room
         /// </summary>
-        /// <param name="RoomName"></param>
-        /// <param name="UserID"></param>
+        /// <param name="room"></param>
         /// 
 
         [HttpPost]
@@ -120,7 +119,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
             command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
-            command.CommandText = "usp_JoinRoom";
+            command.CommandText = "usp_JoinRoom";   
             command.Connection = connection;
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);

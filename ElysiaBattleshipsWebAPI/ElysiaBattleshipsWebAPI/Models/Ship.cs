@@ -24,13 +24,41 @@ namespace ElysiaBattleshipsWebAPI.Models
             Right
         }
 
-        ShipNames ShipName { get; set; }
-        ShipOrientations ShipOrientation { get; set; }
-        int startX { get; set; }
-        int startY { get; set; }
+        public ShipNames ShipType { get; set; }
+        public ShipOrientations ShipOrientation { get; set; }
+        public int StartX { get; set; }
+        public int StartY { get; set; }
+        public int UserID { get; set; }
+        public int RoomID { get; set; }
+        public int ShipID { get; set; }
+        public int ShipOrientationID { get; set; }
 
-        int userID { get; set; }
+        public bool IsTestData { get; set; }
 
-        int roomID { get; set; }
+        public Ship(int shipID, int userID, int roomID, int x, int y, ShipNames shipType, ShipOrientations shipOrientation, bool isTestData)
+        {
+            ShipID = shipID;
+            UserID = userID;
+            RoomID = roomID;
+            StartX = x;
+            StartY = y;
+            ShipType = shipType;
+            IsTestData = isTestData;
+            switch (ShipOrientation)
+            {
+                case ShipOrientations.Up:
+                    ShipOrientationID = 1;
+                    break;
+                case ShipOrientations.Down:
+                    ShipOrientationID = 2;
+                    break;
+                case ShipOrientations.Left:
+                    ShipOrientationID = 3;
+                    break;
+                case ShipOrientations.Right:
+                    ShipOrientationID = 4;
+                    break;
+            }
+        }
     }
 }

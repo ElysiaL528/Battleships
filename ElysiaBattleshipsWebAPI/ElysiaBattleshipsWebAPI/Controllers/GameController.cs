@@ -13,13 +13,14 @@ namespace ElysiaBattleshipsWebAPI.Controllers
     [EnableCors("*", "*", "*")]
     [RoutePrefix("api/Game")]
 
-    public class GameController :   ApiController 
+    public class GameController :   ApiController //Continue working on unit tests
     {
         
         #region connectionstring
-        static string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = pleasant1 ";
+        static string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24 ";
         #endregion
         static SqlConnection connection = new SqlConnection(connectionstring);
+        
 
         /// <summary>
         /// An enum of the five ship types
@@ -36,45 +37,39 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <summary>
         /// Returns a bool indicating whether or not the ship was placed.
         /// </summary>
-        /// <param name="roomID"></param>
-        /// <param name="userID"></param>
-        /// <param name="startX"></param>
-        /// <param name="startY"></param>
-        /// <param name="shipType"></param>
-        /// <param name="orientation"></param>
+        /// <param name="ship"></param>
         /// <returns></returns>
 
         [HttpPost]
         [Route("PlaceShip")]
 
-        public DataTable placeShip(int roomID, int userID, int startX, int startY, ShipTypes shipType, int orientation)
+        public string placeShip([FromBody]Ship ship)
         {
             SqlCommand command = new SqlCommand();
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_PlaceShip";
             command.Connection = connection;
-            command.Parameters.Add(new SqlParameter("ShipID", shipType));
-            command.Parameters.Add(new SqlParameter("UserID", userID));
-            command.Parameters.Add(new SqlParameter("RoomID", roomID));
-            command.Parameters.Add(new SqlParameter("X", startX));
-            command.Parameters.Add(new SqlParameter("Y", startY));
-            command.Parameters.Add(new SqlParameter("ShipOrientationID", orientation));
+            command.Parameters.Add(new SqlParameter("ShipID", ship.ShipID));
+            command.Parameters.Add(new SqlParameter("UserID", ship.UserID));
+            command.Parameters.Add(new SqlParameter("RoomID", ship.RoomID));
+            command.Parameters.Add(new SqlParameter("X", ship.StartX));
+            command.Parameters.Add(new SqlParameter("Y", ship.StartY));
+            command.Parameters.Add(new SqlParameter("ShipOrientationID", ship.ShipOrientationID));
+            command.Parameters.Add(new SqlParameter("IsTestData", ship.IsTestData));
 
-            DataTable table = new DataTable();
-            SqlDataAdapter adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
+            string message = "";
+            connection.Open();
+            message = command.ExecuteScalar().ToString();
+            connection.Close();
 
-            return table;
+            return message;
             
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="roomID"></param>
-        /// <param name="inputX"></param>
-        /// <param name="inputY"></param>
+        /// <param name="shot"></param>
         /// <returns></returns>
         /// 
 
@@ -82,25 +77,25 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [Route("Shoot")]
         
 
-        public int shotIsHit(int userID, int roomID, int inputX, int inputY)
+        public string shotIsHit([FromBody]Shot shot)
         {
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_FireShot";
 
-            command.Parameters.Add(new SqlParameter("UserID", userID));
-            command.Parameters.Add(new SqlParameter("RoomID", roomID));
-            command.Parameters.Add(new SqlParameter("ShotX", inputX));
-            command.Parameters.Add(new SqlParameter("ShotY", inputY));
-            command.Parameters.Add(new SqlParameter("IsTestData", 0));
+            command.Parameters.Add(new SqlParameter("UserID", shot.UserID));
+            command.Parameters.Add(new SqlParameter("RoomID", shot.RoomID));
+            command.Parameters.Add(new SqlParameter("ShotX", shot.X));
+            command.Parameters.Add(new SqlParameter("ShotY", shot.Y));
+            command.Parameters.Add(new SqlParameter("IsTestData", shot.IsTestData));
 
             connection.Open();
-            var result = command.ExecuteScalar();
+            var result = command.ExecuteScalar().ToString();
             connection.Close();
 
-            return (int)result;
-        }
+            return result;
+            }
 
         [HttpPost]
         [Route("GetShips")]
@@ -114,7 +109,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.CommandText = "usp_getShips";
 
             command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
-            command.Parameters.Add(new SqlParameter("RoomID", room.PlayerID));
+            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
 
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);
