@@ -1,10 +1,11 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 2/9/2018 12:40:24 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 2/16/2018 12:39:46 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 
@@ -16,6 +17,7 @@ CREATE PROC [dbo].[usp_PlaceShip]
 ,	@X					int
 ,	@Y					int
 ,	@ShipOrientationID	int
+,	@IsTestData			bit
 as
 
 DECLARE @ErrorMessage varchar(21)		
@@ -106,6 +108,7 @@ BEGIN
 END
 
 SELECT @ErrorMessage
+
 
 
 GO

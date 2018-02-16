@@ -1,10 +1,11 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_FireShot]    Script Date: 2/2/2018 11:39:05 AM ******/
+/****** Object:  StoredProcedure [dbo].[usp_FireShot]    Script Date: 2/16/2018 12:39:46 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 
@@ -21,7 +22,9 @@ CREATE PROC [dbo].[usp_FireShot]
 ,	@IsTestData		bit
 as
 
-IF NOT EXISTS(SELECT * FROM Shots WHERE @ShotX = X AND @ShotY = Y)
+DECLARE @ErrorMessage varchar(20)
+
+IF NOT EXISTS(SELECT * FROM Shots WHERE @ShotX = X AND @ShotY = Y AND RoomID = @RoomID AND UserID = @UserID)
 BEGIN
 
 	DECLARE @hitShipID int = (SELECT	ShipID	FROM	UserShips	WHERE	(dbo.fn_intersects(@UserID, @RoomID, ShipID, @ShotX, @ShotY)) = 1 AND RoomID = @RoomID AND UserID = @UserID)
@@ -33,20 +36,23 @@ BEGIN
 		SET @isHit = 1
 		UPDATE UserShips
 		SET hitCount = hitCount + 1 WHERE ShipID = @hitShipID
+		SET @ErrorMessage = 'Hit'
 	END
-
-	print @isHit
+	ELSE
+	BEGIN
+		SET @ErrorMessage = 'Miss'
+	END
 
 	INSERT INTO Shots
 	VALUES (@UserID, @RoomID, @ShotX, @ShotY, @isHit, @IsTestData)
 
-	RETURN @isHit
 END 
+ELSE 
+BEGIN
+SET @ErrorMessage = 'Pre-existing shot'
+END
 
-
-
-
-
+SELECT @ErrorMessage
 
 
 GO
