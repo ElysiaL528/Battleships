@@ -1,6 +1,6 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 2/16/2018 12:39:46 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 2/23/2018 12:45:31 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -10,10 +10,12 @@ GO
 
 
 
+
+
 CREATE PROC [dbo].[usp_PlaceShip]
 	@UserID				int
 ,	@RoomID				int
-,   @ShipID				int
+,   @ShipTypeID			int
 ,	@X					int
 ,	@Y					int
 ,	@ShipOrientationID	int
@@ -34,10 +36,10 @@ SELECT	@shipLength  = s.ShipLength,
 		@changeY	=	so.OrientationValueY
 FROM	UserShips	us
 JOIN	Ships	s
-ON		us.ShipID	=	s.ShipID
+ON		us.ShipTypeID	=	s.ShipID
 JOIN	ShipOrientations	so
 ON		us.ShipOrientationID	=	so.ShipOrientationID
-WHERE s.ShipID = @ShipID
+WHERE s.ShipID = @ShipTypeID
 AND so.ShipOrientationID = @ShipOrientationID
 AND us.UserID = @UserID
 AND us.RoomID = @RoomID
@@ -76,7 +78,7 @@ BEGIN
 		SET @EndY = @Y
 		SET @Y = @tempY
 	END
-	if NOT EXISTS(SELECT ShipID FROM UserShips WHERE UserID = @UserID AND RoomID = @RoomID AND ShipID = @ShipID)
+	if NOT EXISTS(SELECT ShipID FROM UserShips WHERE UserID = @UserID AND RoomID = @RoomID AND ShipTypeID = @ShipTypeID)
 		BEGIN
 
 		DECLARE	@StartCoordIsOverlapping	int =	(SELECT TOP 1 ShipID
@@ -88,7 +90,7 @@ BEGIN
 		IF(@StartCoordIsOverlapping IS NULL AND @EndCoordIsOverlapping IS NULL)
 			BEGIN
 				INSERT INTO UserShips
-				VALUES (@ShipID, @UserID, @RoomID, @X, @Y, @ShipOrientationID, 0, 0, 0)
+				VALUES (@UserID, @RoomID, @ShipTypeID, @X, @Y, @ShipOrientationID, 0, 0, 0)
 
 				SET @ErrorMessage = 'Placed ship'
 			END
@@ -108,6 +110,8 @@ BEGIN
 END
 
 SELECT @ErrorMessage
+
+
 
 
 
