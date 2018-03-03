@@ -13,7 +13,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
     [EnableCors("*", "*", "*")]
     [RoutePrefix("api/Game")]
 
-    public class GameController :   ApiController //Continue working on unit tests
+    public class GameController :   ApiController
     {
         
         #region connectionstring
@@ -49,13 +49,12 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_PlaceShip";
             command.Connection = connection;
-            command.Parameters.Add(new SqlParameter("ShipID", ship.ShipID));
+            command.Parameters.Add(new SqlParameter("ShipTypeID", ship.ShipTypeID));
             command.Parameters.Add(new SqlParameter("UserID", ship.UserID));
             command.Parameters.Add(new SqlParameter("RoomID", ship.RoomID));
             command.Parameters.Add(new SqlParameter("X", ship.StartX));
             command.Parameters.Add(new SqlParameter("Y", ship.StartY));
             command.Parameters.Add(new SqlParameter("ShipOrientationID", ship.ShipOrientationID));
-            command.Parameters.Add(new SqlParameter("IsTestData", ship.IsTestData));
 
             string message = "";
             connection.Open();
@@ -88,7 +87,6 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.Parameters.Add(new SqlParameter("RoomID", shot.RoomID));
             command.Parameters.Add(new SqlParameter("ShotX", shot.X));
             command.Parameters.Add(new SqlParameter("ShotY", shot.Y));
-            command.Parameters.Add(new SqlParameter("IsTestData", shot.IsTestData));
 
             connection.Open();
             var result = command.ExecuteScalar().ToString();
@@ -121,7 +119,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [HttpPost]
         [Route("NewShots")]
 
-        public DataTable checkForShots([FromBody]Room room)
+        public bool checkForShots([FromBody]Room room)
         {
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
@@ -135,7 +133,14 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
 
-            return table;
+            bool newShots = true;
+
+            if (table.Rows.Count == 0)
+            {
+                newShots = false;
+            }
+
+            return newShots;
         }
 
         [HttpPost]

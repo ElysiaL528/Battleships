@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace ElysiaBattleshipsWebAPI.Tests
 {
     [TestClass]
-    public class RoomControllerTests //Debug DeleteTestData stored proc & fix PlaceShipTest
+    public class RoomControllerTests 
     {
         #region connectionstring
         static string connectionString = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24";
@@ -48,11 +48,32 @@ namespace ElysiaBattleshipsWebAPI.Tests
 
             Random random = new Random();
 
-            Room room = new Room(1, "TestRoom" + random.Next(9999, 99999), "TestUsername", 3, true);
+            command.Connection = sqlConnection;
+            command.CommandType = System.Data.CommandType.Text;
+
+            var username = "TestUser" + random.Next(999, 9999);
+            sqlConnection.Open();
+
+            command.CommandText = $"INSERT INTO Users VALUES ('{username}', 1)";
+            command.ExecuteScalar();
+
+            command.CommandText = "SELECT TOP 1 UserID FROM Users ORDER BY UserID DESC";
+            var userID = Convert.ToInt32(command.ExecuteScalar());
+
+            Room room = new Room(1, "TestRoom" + random.Next(9999, 99999), username, userID);
+            sqlConnection.Close();
 
             var result = roomController.CreateRoom(room);
 
             Assert.AreNotEqual(0, result);
+
+            //Delete test data
+            command.CommandText = "usp_DeleteTestData";
+            command.CommandType = System.Data.CommandType.StoredProcedure;
+            command.Connection = sqlConnection;
+            sqlConnection.Open();
+            command.ExecuteScalar();
+            sqlConnection.Close();
         }
 
         [TestMethod]
@@ -60,7 +81,7 @@ namespace ElysiaBattleshipsWebAPI.Tests
         {
             var roomController = new RoomController();
 
-            Room room = new Room(2, "", "", 11, true);
+            Room room = new Room(2, "", "", 11);
             var result = roomController.JoinRoom(room);
 
             Assert.AreNotEqual(null, result);

@@ -60,7 +60,6 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.CommandText = "usp_CreateRoom";
             command.Parameters.Add(new SqlParameter("RoomName", room.RoomName));
             command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
-            command.Parameters.Add(new SqlParameter("IsTestData", room.IsTestData));
             command.Connection = connection;
 
             connection.Open();
@@ -97,7 +96,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
                 int hostID = Convert.ToInt32(room["HostPlayerID"]);
                 int roomID = Convert.ToInt32(room["RoomID"]);
 
-                Room newRoom = new Room(roomID, roomName, hostName, hostID, false);
+                Room newRoom = new Room(roomID, roomName, hostName, hostID);
                 roomsList.Add(newRoom);
             }
 
@@ -107,8 +106,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <summary>
         /// Joins a room
         /// </summary>
-        /// <param name="RoomID"></param>
-        /// <param name="UserID"></param>
+        /// <param name="room"></param>
         /// <returns></returns>
 
         [HttpPost]
@@ -129,7 +127,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <summary>
         /// Gets the RoomID, RoomName, HostPlayerID, JoinedPlayerID, and both user ready statuses of a room
         /// </summary>
-        /// <param name="RoomID"></param>
+        /// <param name="room"></param>
         /// <returns></returns>        
         [HttpPost]
         [Route("GetRoomInfo")]
