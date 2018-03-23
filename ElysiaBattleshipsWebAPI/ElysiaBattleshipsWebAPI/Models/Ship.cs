@@ -32,6 +32,10 @@ namespace ElysiaBattleshipsWebAPI.Models
         public int RoomID { get; set; }
         public int ShipID { get; set; }
         public int ShipOrientationID { get; set; }
+        public int ShipOrientationValueX { get; set; }
+        public int ShipOrientationValueY { get; set; }
+
+        public int ShipLength { get; set; }
 
         public bool IsTestData { get; set; }
 
@@ -45,18 +49,45 @@ namespace ElysiaBattleshipsWebAPI.Models
             {
                 case ShipOrientations.Up:
                     ShipOrientationID = 1;
+                    ShipOrientationValueX = 0;
+                    ShipOrientationValueY = -1;
                     break;
                 case ShipOrientations.Down:
                     ShipOrientationID = 2;
+                    ShipOrientationValueX = 0;
+                    ShipOrientationValueY = 1;
                     break;
                 case ShipOrientations.Left:
                     ShipOrientationID = 3;
+                    ShipOrientationValueX = -1;
+                    ShipOrientationValueY = 0;
                     break;
                 case ShipOrientations.Right:
                     ShipOrientationID = 4;
+                    ShipOrientationValueX = 1;
+                    ShipOrientationValueY = 0;
                     break;
             }
             ShipTypeID = Convert.ToInt32(shipType);
+
+            switch (ShipTypeID)
+            {
+                case 1:
+                    ShipLength = 5;
+                    break;
+                case 2:
+                    ShipLength = 4;
+                    break;
+                case 3:
+                    ShipLength = 3;
+                    break;
+                case 4:
+                    ShipLength = 3;
+                    break;
+                case 5:
+                    ShipLength = 2;
+                    break;
+            }
 
         }
     }

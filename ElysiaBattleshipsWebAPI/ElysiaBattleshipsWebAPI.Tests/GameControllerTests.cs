@@ -4,6 +4,7 @@ using ElysiaBattleshipsWebAPI.Controllers;
 using System.Data;
 using ElysiaBattleshipsWebAPI.Models;
 using System.Data.SqlClient;
+using static ElysiaBattleshipsWebAPI.Models.Ship;
 
 namespace ElysiaBattleshipsWebAPI.Tests
 {
@@ -102,14 +103,23 @@ namespace ElysiaBattleshipsWebAPI.Tests
 
             command.CommandText = "SELECT TOP 1 RoomID FROM Rooms ORDER BY RoomID DESC";
             var roomID = Convert.ToInt32(command.ExecuteScalar());
+
+            int shipTypeID = 1;
+
+            int shipX = 1;
+            int shipY = 1;
+
+            Ship ship = new Ship(userID, roomID, shipX, shipY, ShipNames.AircraftCarrier, ShipOrientations.Right);
+
+            command.CommandText = $"INSERT INTO Ships VALUES ({userID}, {roomID}, {ship.ShipTypeID}, {shipX}, {shipY}, {ship.ShipOrientationID}, 0, 0, 1)";
             connection.Close();
 
-            int x = random.Next(1, 10);
-            int y = random.Next(1, 10);
+            int shotX = random.Next(6, 10);
+            int shotY = random.Next(6, 10);
 
             int randomShipTypeID = random.Next(1, 5);
 
-            Shot shot = new Shot(x, y, 1, userID, roomID, true);
+            Shot shot = new Shot(shotX, shotY, 1, userID, roomID, true);
 
             string isValid = gameController.shotIsHit(shot);
 
