@@ -1,67 +1,61 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_FireShot]    Script Date: 9/22/2017 2:47:42 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_FireShot]    Script Date: 3/2/2018 12:45:51 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+
+
+
+
+
+
+
+
+
 CREATE PROC [dbo].[usp_FireShot]
-	@UserID		int
-,	@RoomID		int
-,	@X			int
-,	@Y			int
+	@UserID			int
+,	@RoomID			int
+,	@ShotX			int	
+,	@ShotY			int		
 as
 
---Given as parameters
-DECLARE @shotX	int
-DECLARE @shotY	int
+DECLARE @ErrorMessage varchar(20)
 
---Can be selected from tables
-DECLARE @shipStartX			tinyint
-DECLARE @shipStartY			tinyint
-DECLARE @shipLength			tinyint
-DECLARE @shipOrientationID	tinyint
-
---Can be derived from known data
-DECLARE @shipEndX		tinyint
-DECLARE @shipEndY		tinyint
-DECLARE @changeX		tinyint
-DECLARE @changeY		tinyint
-
-SELECT	@changeX	=	OrientationValueX,
-		@changeY	=	OrientationValueY
-FROM ShipOrientations
-WHERE ShipOrientationID	=	@shipOrientationID
-
-SET @shipEndX	=	@shipStartX + (@shipLength - 1) * @changeX
-SET @shipEndY	=	@shipStartY	+ (@shipLength - 1) * @changeY
-
-IF(@ShipEndX > @ShipStartX)
+IF NOT EXISTS(SELECT * FROM Shots WHERE @ShotX = X AND @ShotY = Y AND RoomID = @RoomID AND UserID = @UserID)
 BEGIN
-	DECLARE @tempX int	=	@shipStartX
-	SET		@shipStartX = @shipStartY
-	SET		@shipStartY = @tempX
+
+	DECLARE @hitShipID int = (SELECT	ShipID	FROM	UserShips	WHERE	(dbo.fn_intersects(@UserID, @RoomID, ShipID, @ShotX, @ShotY)) = 1 AND RoomID = @RoomID AND UserID = @UserID)
+
+	DECLARE @isHit bit = 0
+
+	DECLARE @IsTestData bit = (SELECT isTestData FROM Users WHERE UserID = @UserID)
+
+	IF @hitShipID IS NOT NULL
+	BEGIN
+		SET @isHit = 1
+		UPDATE UserShips
+		SET hitCount = hitCount + 1 WHERE ShipID = @hitShipID
+		SET @ErrorMessage = 'Hit'
+	END
+	ELSE
+	BEGIN
+		SET @ErrorMessage = 'Miss'
+	END
+
+	INSERT INTO Shots
+	VALUES (@UserID, @RoomID, @ShotX, @ShotY, @isHit, @IsTestData)
+
+END 
+ELSE 
+BEGIN
+SET @ErrorMessage = 'Pre-existing shot'
 END
 
-IF(@shipEndY > @shipStartY)
-BEGIN
-	DECLARE @tempY int	=	@shipStartY
-	SET		@shipStartY =	@shipEndY
-	SET		@shipEndY	=	@tempY
-END
+SELECT @ErrorMessage
 
-IF EXISTS(	SELECT 1 AS IsHit
-			WHERE	(@shotX BETWEEN @shipStartX AND @shipEndX)
-			AND		(@shotY BETWEEN @shipStartY AND @shipEndY))
-BEGIN
-	print 'Hit'
-END
-ELSE
-BEGIN
-	print 'Miss'
-END
-	
 
 
 GO

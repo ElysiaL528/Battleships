@@ -111,7 +111,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         [HttpPost]
         [Route("JoinRoom")]
-        public DataTable JoinRoom([FromBody]Room room)
+        public string JoinRoom([FromBody]Room room)
         {
             command.Parameters.Clear();
             command.CommandType = CommandType.StoredProcedure;
@@ -119,10 +119,10 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
             command.CommandText = "usp_JoinRoom";   
             command.Connection = connection;
-            var table = new DataTable();
-            var adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
-            return table;
+            connection.Open();
+            var errorMessage = command.ExecuteScalar().ToString();
+            connection.Close();
+            return errorMessage;
         }
         /// <summary>
         /// Gets the RoomID, RoomName, HostPlayerID, JoinedPlayerID, and both user ready statuses of a room
