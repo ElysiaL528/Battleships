@@ -1,0 +1,100 @@
+<html>
+    <head>
+        <title>Battleships</title>
+        <style>
+            h3
+            {
+                color:white;
+                background-color: black;
+                
+            }
+
+            .title
+            {
+                margin:auto;
+                text-align:center;
+            }
+
+            .debug
+            {
+                border: 1px solid red;
+            }
+        </style>
+    </head>
+    <body>
+        <h3 class="title">Welcome to the Battleships game!</h3>
+        
+        <div>
+            <div id="usernameLabel">Username:</div>
+            <input type="text" id="usernameTextBox">
+
+            <br>
+            <button id="lobbyListButton" onclick="CreateUser(0);">Lobby List</button>
+            <br>
+            <button id="createRoomButton" onclick="CreateUser(1);">Create Room</button>
+            
+        </div>
+    </body>
+</html>
+
+<script>
+    function CreateUser(userInput)
+    {   
+        if(usernameTextBox.value == "")
+        {
+            alert("Please input a username");
+        }
+        else
+        {
+            var user = {
+                Username: usernameTextBox.value,
+                IsTestData: 0
+            }
+            callAPI('http://localhost:63055/api/Room/Register', (userID) => {
+                localStorage.setItem('UserID', userID);
+                if(userInput == 0)
+                {
+                    window.location.href = "./Lobby.html";
+                }
+                else
+                {
+                    window.location.href = "./CreateRoom.html";
+                }
+            }, user);
+            
+        }
+    }
+
+    function storeUserID(userID)
+    {
+        
+    }
+
+    //This function will be called by "callAPI" function once the response from WebApi comes back with new user data
+
+    function showResult(result)
+    {
+        console.log(result);
+    }    
+
+    function callAPI(url, callback, body)
+    {
+        var xhr = new XMLHttpRequest();
+        xhr.open(body === undefined ? 'GET' : 'POST', url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onload = () => callback(JSON.parse(xhr.responseText));
+
+        if(body === undefined)
+        {
+            xhr.send();
+        }
+        else
+        {
+            xhr.send(JSON.stringify(body));
+        }
+    }
+    
+
+//<div style="position:relative; top:50px;left:50px;" id="usernameLabel">Username:</div>
+//<input style="position:relative; top:850px;right:50px;" type="number" id="usernameTextBox">
+</script>
