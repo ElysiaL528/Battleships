@@ -1,0 +1,78 @@
+<html>
+    <head>
+        <title>Lobby List</title>
+        <style>
+            
+        </style>
+
+        <p>Rooms:</p>
+        <div id="RoomsList"></div>
+    </head>
+    <body onload="getRooms()">
+        
+    </body>
+</html>
+<script>
+    
+    function getRooms()
+    {
+        callAPI("http://localhost:63055/api/Room/GetRooms", roomList)
+    }
+
+    function roomList(result)
+    {
+        rooms = result;
+
+        for(let room of rooms)
+        {
+            let newRoom = document.createElement("div");
+            newRoom.innerText = `${room.RoomName}, ${room.HostPlayerName}`;
+            RoomsList.appendChild(newRoom);
+
+            let roomButton = document.createElement("button")
+            roomButton.innerText = "Join"
+            roomButton.onclick = () => {joinRoom(room.RoomID);}
+            RoomsList.appendChild(roomButton);
+        }
+    
+    }
+
+    function joinRoom(roomID)
+    {
+        //Finish writing this function
+        
+        var info = {
+            PlayerID: localStorage.getItem('UserID'),
+            RoomID: roomID
+        };
+        callAPI("http://localhost:63055/api/Room/JoinRoom", storeRoomInfo, info);
+    }
+    function storeRoomInfo(errorMessage)
+    {
+        if(errorMessage == '')
+        {
+            alert('Failed to join')
+        }
+        else
+        {
+            window.location.href = './Room.html'
+        }
+    }
+    function callAPI(url, callback, body)
+    {
+        var xhr = new XMLHttpRequest();
+        xhr.open(body === undefined ? 'GET' : 'POST', url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onload = () => callback(JSON.parse(xhr.responseText));
+
+        if(body === undefined)
+        {
+            xhr.send();
+        }
+        else
+        {
+            xhr.send(JSON.stringify(body));
+        }
+    }
+
+</script>

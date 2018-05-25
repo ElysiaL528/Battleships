@@ -1,0 +1,133 @@
+<html>
+    <head>
+        <title>Room:</title>
+
+        <style>
+         
+        </style>
+        
+    </head>
+    <body onload = "drawGrids();">
+        <h3></h3>
+        <div id="gridPlaceHolder"></div>
+        
+    </body>
+</html>
+<script>
+
+var cellsMap = new Map();
+var shipsMap = new Map();
+
+var placedShips = new Map();
+localStorage.getItem('RoomName');
+
+function drawGrids()
+{
+    let gameBoard = document.createElement('table');
+    gameBoard.id = 'grid';
+    gameBoard.style.outline = '1px solid Black';
+    
+    document.body.appendChild(gameBoard);
+
+    let gridCellSize = 50;
+
+    for(let x = 1; x <= 10; x++)
+    {
+        let row = document.createElement('tr');
+        gameBoard.appendChild(row);
+        for(let y = 1; y <= 10; y++)
+        {
+            let cell = document.createElement('td');
+            cell.id = `"x${x}y${y}"`;
+            cell.style.width = `${gridCellSize}px`;
+            cell.style.height = `${gridCellSize}px`;
+            cell.style.outline = '1px solid Black';
+            cell.style.padding = '0px';
+            cell.style.spacing = '0px';
+            cell.onmouseover = () => { cell.style.backgroundColor = 'LightBlue'; };
+            cell.onmouseout = () => { cell.style.backgroundColor = 'Transparent'; };
+            cell.onclick = () => { selectedCell(cell.id); };
+            cellsMap.set(cell.id, cell);
+            row.appendChild(cell);
+        }
+    }
+
+    let shipsGrid = document.createElement('table');
+    shipsGrid.id = 'shipsGrid';
+    shipsGrid.style.outline = '1px solid Black';
+
+    shipsGrid.style.position = 'relative';
+    shipsGrid.style.top = '50px';
+
+    document.body.appendChild(shipsGrid);
+    for(let i = 1; i <= 5; i++)
+    {
+        let shipsRow = document.createElement('tr');
+        shipsGrid.appendChild(shipsRow);
+        
+        let shipsCell = document.createElement('td');
+        switch(i)
+        {
+            case 1:
+                shipsCell.id = 'AircraftCarrier';
+                break;
+
+            case 2:
+                shipsCell.id = 'Battleship';
+                break;
+
+            case 3:
+                shipsCell.id = 'Submarine';
+                break;
+            
+            case 4:
+                shipsCell.id = 'Cruiser';
+                break;
+            
+            case 5:
+                shipsCell.id = 'Destroyer';
+                break;
+        }
+        shipsCell.style.width = '500px';
+        shipsCell.style.height = '50px';
+        shipsCell.style.outline = '1px solid Black';
+        shipsCell.onmouseover = () => {shipsCell.style.backgroundColor = 'LightBlue';};
+        shipsCell.onmouseout = () => {shipsCell.style.backgroundColor = 'Transparent'};
+        shipsCell.onclick = () => {selectedShipsCell(shipsCell.id); };
+        shipsMap.set(shipsCell.id, shipsCell);
+        shipsRow.appendChild(shipsCell);
+    }
+}
+function selectedCell(cellID)
+{
+    let cell = cellsMap.get(cellID);
+}
+var selectedShip;
+function selectedShipsCell(cellID)
+{
+    let cell = shipsMap.get(cellID);
+
+    if(placedShips.get(cellID) == null)
+    {
+        //If this ship hasn't already been placed, select the ship and allow player to place it
+        //FINISH FUNCTIon
+    }   
+}
+
+function callAPI(url, callback, body)
+    {
+        var xhr = new XMLHttpRequest();
+        xhr.open(body === undefined ? 'GET' : 'POST', url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onload = () => callback(JSON.parse(xhr.responseText));
+
+        if(body === undefined)
+        {
+            xhr.send();
+        }
+        else
+        {
+            xhr.send(JSON.stringify(body));
+        }
+    }
+</script>
