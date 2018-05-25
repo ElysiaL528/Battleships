@@ -5,6 +5,7 @@ using System.Data;
 using ElysiaBattleshipsWebAPI.Models;
 using System.Data.SqlClient;
 using static ElysiaBattleshipsWebAPI.Models.Ship;
+using System.Collections.Generic;
 
 namespace ElysiaBattleshipsWebAPI.Tests
 {
@@ -64,7 +65,7 @@ namespace ElysiaBattleshipsWebAPI.Tests
 
             //command.CommandText = $"INSERT into UserShips VALUES ({randomShipTypeID}, {userID}, {roomID}, {x}, {y}, 1, 0, 0, 1)";
 
-            Ship ship = new Ship(userID, roomID, x, y, Ship.ShipNames.Battleship, Ship.ShipOrientations.Up);
+            Ship ship = new Ship(userID, roomID, x, y, 2, 1);
 
             string isValid = gameController.placeShip(ship);
             Assert.AreNotEqual(false, isValid, "Ship placement should've been valid, but it returned invalid");
@@ -109,7 +110,7 @@ namespace ElysiaBattleshipsWebAPI.Tests
             int shipX = 1;
             int shipY = 1;
 
-            Ship ship = new Ship(userID, roomID, shipX, shipY, ShipNames.AircraftCarrier, ShipOrientations.Right);
+            Ship ship = new Ship(userID, roomID, shipX, shipY, 1, 4);
 
             command.CommandText = $"INSERT INTO Ships VALUES ({userID}, {roomID}, {ship.ShipTypeID}, {shipX}, {shipY}, {ship.ShipOrientationID}, 0, 0, 1)";
             connection.Close();
@@ -121,7 +122,7 @@ namespace ElysiaBattleshipsWebAPI.Tests
 
             Shot shot = new Shot(shotX, shotY, 1, userID, roomID, true);
 
-            string isValid = gameController.shotIsHit(shot);
+            string isValid = gameController.ShotIsHit(shot);
 
             Assert.AreEqual("Miss", isValid, "Shot was supposed to miss, but didn't.");
 
@@ -164,7 +165,7 @@ namespace ElysiaBattleshipsWebAPI.Tests
 
             Room room = new Room(roomID, "", "", userID);
 
-            DataTable shipTable = gameController.getShips(room);
+            List<Ship> shipTable = gameController.getShips(room);
 
             Assert.AreNotEqual(null, shipTable, "Table is empty");
 

@@ -76,7 +76,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [Route("Shoot")]
         
 
-        public string shotIsHit([FromBody]Shot shot)
+        public string ShotIsHit([FromBody]Shot shot)
         {
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
@@ -99,21 +99,37 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [Route("GetShips")]
 
 
-        public DataTable getShips([FromBody]Room room)
+        public List<Ship> getShips([FromBody]Room room)
         {
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "usp_getShips";
 
-            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
             command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
 
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
 
-            return table;
+            var shipsList = new List<Ship>();
+            foreach (DataRow playerShip in table.Rows)
+            {
+                int shipX = Convert.ToInt32(playerShip["X"]);
+                int shipY = Convert.ToInt32(playerShip["Y"]);
+
+                int shipOrientationID = Convert.ToInt32(playerShip["ShipOrientationID"]);
+                int shipTypeID = Convert.ToInt32(playerShip["ShipTypeID"]);
+
+                int hitCount = Convert.ToInt32(playerShip["HitCount"]);
+
+                Ship ship = new Ship(room.PlayerID, room.RoomID, shipX, shipY, shipTypeID, shipOrientationID);
+                shipsList.Add(ship);
+            }
+
+
+            return shipsList;
         }
 
         [HttpPost]
