@@ -1,4 +1,4 @@
-<html>
+<html> 
     <head>
         <title>Room:</title>
 
@@ -13,6 +13,7 @@
         
     </body>
 </html>
+<script src ="Cell.js"></script>
 <script>
 
 var cellsMap = new Map();
@@ -37,13 +38,13 @@ function drawGrids()
         gameBoard.appendChild(row);
         for(let y = 1; y <= 10; y++)
         {
-            let cell = document.createElement('td');
+            var cell = new Cell();
+            //WORK ON THIS FUNCTION -- Identify why js doesn't think that HTMLTableDataCellElement isn't defined
+            //let cell = document.createElement('td');
             cell.id = `"x${x}y${y}"`;
             cell.style.width = `${gridCellSize}px`;
             cell.style.height = `${gridCellSize}px`;
             cell.style.outline = '1px solid Black';
-            cell.style.padding = '0px';
-            cell.style.spacing = '0px';
             cell.onmouseover = () => { cell.style.backgroundColor = 'LightBlue'; };
             cell.onmouseout = () => { cell.style.backgroundColor = 'Transparent'; };
             cell.onclick = () => { selectedCell(cell.id); };
@@ -92,25 +93,31 @@ function drawGrids()
         shipsCell.style.height = '50px';
         shipsCell.style.outline = '1px solid Black';
         shipsCell.onmouseover = () => {shipsCell.style.backgroundColor = 'LightBlue';};
-        shipsCell.onmouseout = () => {shipsCell.style.backgroundColor = 'Transparent'};
+        shipsCell.onmouseout = () => {shipsCell.style.backgroundColor = 'Transparent';};
+
         shipsCell.onclick = () => {selectedShipsCell(shipsCell.id); };
         shipsMap.set(shipsCell.id, shipsCell);
         shipsRow.appendChild(shipsCell);
     }
 }
+var selectedShipID;
+
 function selectedCell(cellID)
 {
     let cell = cellsMap.get(cellID);
+    if(selectedShipID != null)
+    {
+        cell.style.backgroundColor = 'DarkBlue';
+    }
 }
-var selectedShip;
+
 function selectedShipsCell(cellID)
 {
     let cell = shipsMap.get(cellID);
 
     if(placedShips.get(cellID) == null)
     {
-        //If this ship hasn't already been placed, select the ship and allow player to place it
-        //FINISH FUNCTIon
+        selectedShipID = cellID;
     }   
 }
 

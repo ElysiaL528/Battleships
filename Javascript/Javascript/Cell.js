@@ -1,7 +1,7 @@
-class Cell
+class Cell extends HTMLTableDataCellElement
 {
     constructor()
     {
-        
+        super();
     }
 }
