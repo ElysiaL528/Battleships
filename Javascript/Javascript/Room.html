@@ -17,9 +17,13 @@
 <script>
 
 var cellsMap = new Map();
-var shipsMap = new Map();
+var playerShipsMap = new Map();
 
 var placedShips = new Map();
+
+var selectedShipID;
+var selectedShipLength;
+
 localStorage.getItem('RoomName');
 
 function drawGrids()
@@ -32,23 +36,34 @@ function drawGrids()
 
     let gridCellSize = 50;
 
-    for(let x = 1; x <= 10; x++)
+    for(let y = 1; y <= 10; y++)
     {
         let row = document.createElement('tr');
         gameBoard.appendChild(row);
-        for(let y = 1; y <= 10; y++)
+        for(let x = 1; x <= 10; x++)
         {
-            var cell = new Cell();
-            //WORK ON THIS FUNCTION -- Identify why js doesn't think that HTMLTableDataCellElement isn't defined
-            //let cell = document.createElement('td');
-            cell.id = `"x${x}y${y}"`;
+            let cell = document.createElement('td');
+            cell.id = `x${x}y${y}`;
             cell.style.width = `${gridCellSize}px`;
             cell.style.height = `${gridCellSize}px`;
             cell.style.outline = '1px solid Black';
-            cell.onmouseover = () => { cell.style.backgroundColor = 'LightBlue'; };
-            cell.onmouseout = () => { cell.style.backgroundColor = 'Transparent'; };
-            cell.onclick = () => { selectedCell(cell.id); };
-            cellsMap.set(cell.id, cell);
+            cell.onmouseover = () =>    {
+                                            if(cell.dataset.isSelected == "false") 
+                                            {
+                                                cell.style.backgroundColor = 'LightBlue'; 
+                                            }
+                                        };
+            cell.onmouseout = () => {
+                                            if(cell.dataset.isSelected == "false")
+                                            {
+                                                cell.style.backgroundColor = 'Transparent';
+                                            }
+                                    };
+            cell.onclick = () => { if(selectedShipID != null) {selectedCell(cell.id); }};
+            cell.dataset.isSelected = 'false';
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+            cellsMap.set(cell.id, cell);    
             row.appendChild(cell);
         }
     }
@@ -67,58 +82,86 @@ function drawGrids()
         shipsGrid.appendChild(shipsRow);
         
         let shipsCell = document.createElement('td');
+
         switch(i)
         {
             case 1:
                 shipsCell.id = 'AircraftCarrier';
+                shipsCell.dataset.shipLength = 5;
                 break;
 
             case 2:
                 shipsCell.id = 'Battleship';
+                shipsCell.dataset.shipLength = 4;
                 break;
 
             case 3:
                 shipsCell.id = 'Submarine';
+                shipsCell.dataset.shipLength = 3;
                 break;
             
             case 4:
                 shipsCell.id = 'Cruiser';
+                shipsCell.dataset.shipLength = 3;
                 break;
             
             case 5:
                 shipsCell.id = 'Destroyer';
+                shipsCell.dataset.shipLength = 2;
                 break;
         }
         shipsCell.style.width = '500px';
         shipsCell.style.height = '50px';
         shipsCell.style.outline = '1px solid Black';
-        shipsCell.onmouseover = () => {shipsCell.style.backgroundColor = 'LightBlue';};
-        shipsCell.onmouseout = () => {shipsCell.style.backgroundColor = 'Transparent';};
+        
+        shipsCell.onmouseover = () =>   { 
+                                            if(shipsCell.dataset.isSelected == 'false')
+                                            {    
+                                                shipsCell.style.backgroundColor = 'LightBlue';
+                                            }
+                                        };
+        shipsCell.onmouseout = () => {  if(shipsCell.dataset.isSelected == 'false')
+                                        {
+                                            shipsCell.style.backgroundColor = 'Transparent';
+                                        }
+                                    };
 
         shipsCell.onclick = () => {selectedShipsCell(shipsCell.id); };
-        shipsMap.set(shipsCell.id, shipsCell);
+        playerShipsMap.set(shipsCell.id, shipsCell);
         shipsRow.appendChild(shipsCell);
+
+        shipsCell.dataset.isSelected = 'false';
+
     }
 }
-var selectedShipID;
 
 function selectedCell(cellID)
 {
+    //Display all the available end cells
     let cell = cellsMap.get(cellID);
+    cell.dataset.isSelected = "true";
     if(selectedShipID != null)
     {
         cell.style.backgroundColor = 'DarkBlue';
     }
+    if(cell.dataset.x - selectedShipLength + 1 > 0)
+    {
+        var availableCell = cellsMap.get(`x${cell.dataset.x - selectedShipLength + 1}y${cell.dataset.y}`);        
+    }
+
 }
 
 function selectedShipsCell(cellID)
 {
-    let cell = shipsMap.get(cellID);
+    let cell = playerShipsMap.get(cellID);
+
+    cell.dataset.isSelected = 'true';
 
     if(placedShips.get(cellID) == null)
     {
         selectedShipID = cellID;
-    }   
+        selectedShipLength = cell.dataset.shipLength;
+    }
 }
 
 function callAPI(url, callback, body)
