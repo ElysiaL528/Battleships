@@ -22,7 +22,7 @@ var playerShipsMap = new Map();
 var placedShips = new Map();
 
 var selectedShipID;
-var selectedShipLength;
+var selectedShipLength = 0;
 
 localStorage.getItem('RoomName');
 
@@ -48,13 +48,13 @@ function drawGrids()
             cell.style.height = `${gridCellSize}px`;
             cell.style.outline = '1px solid Black';
             cell.onmouseover = () =>    {
-                                            if(cell.dataset.isSelected == "false") 
+                                            if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
                                             {
                                                 cell.style.backgroundColor = 'LightBlue'; 
                                             }
                                         };
             cell.onmouseout = () => {
-                                            if(cell.dataset.isSelected == "false")
+                                            if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false')
                                             {
                                                 cell.style.backgroundColor = 'Transparent';
                                             }
@@ -63,6 +63,7 @@ function drawGrids()
             cell.dataset.isSelected = 'false';
             cell.dataset.x = x;
             cell.dataset.y = y;
+            cell.dataset.isAvailableCell = 'false';
             cellsMap.set(cell.id, cell);    
             row.appendChild(cell);
         }
@@ -86,27 +87,32 @@ function drawGrids()
         switch(i)
         {
             case 1:
-                shipsCell.id = 'AircraftCarrier';
+                shipsCell.id = '1';
+                shipsCell.dataset.name = 'AircraftCarrier';
                 shipsCell.dataset.shipLength = 5;
                 break;
 
             case 2:
-                shipsCell.id = 'Battleship';
+                shipsCell.id = '2';
+                shipsCell.dataset.name = 'Battleship';
                 shipsCell.dataset.shipLength = 4;
                 break;
 
             case 3:
-                shipsCell.id = 'Submarine';
+                shipsCell.id = '3';
+                shipsCell.dataset.name = 'Submarine';
                 shipsCell.dataset.shipLength = 3;
                 break;
             
             case 4:
-                shipsCell.id = 'Cruiser';
+                shipsCell.id = '4';
+                shipsCell.dataset.name = 'Cruiser';
                 shipsCell.dataset.shipLength = 3;
                 break;
             
             case 5:
-                shipsCell.id = 'Destroyer';
+                shipsCell.id = '5';
+                shipsCell.dataset.name = 'Destroyer';
                 shipsCell.dataset.shipLength = 2;
                 break;
         }
@@ -117,7 +123,7 @@ function drawGrids()
         shipsCell.onmouseover = () =>   { 
                                             if(shipsCell.dataset.isSelected == 'false')
                                             {    
-                                                shipsCell.style.backgroundColor = 'LightBlue';
+                                                shipsCell.style.backgroundColor = 'LightGreen';
                                             }
                                         };
         shipsCell.onmouseout = () => {  if(shipsCell.dataset.isSelected == 'false')
@@ -135,25 +141,81 @@ function drawGrids()
     }
 }
 
+var availableEndCells = new Map();
+
 function selectedCell(cellID)
 {
     //Display all the available end cells
-    let cell = cellsMap.get(cellID);
+    let cell = cellsMap.get(cellID);    
     cell.dataset.isSelected = "true";
     if(selectedShipID != null)
     {
-        cell.style.backgroundColor = 'DarkBlue';
-    }
-    if(cell.dataset.x - selectedShipLength + 1 > 0)
-    {
-        var availableCell = cellsMap.get(`x${cell.dataset.x - selectedShipLength + 1}y${cell.dataset.y}`);        
-    }
+        for(let y = 1; y < 11; y++)
+        {
+            for(let x = 1; x < 11; x++)
+            {
+                let cell = cellsMap.get(`x${x}y${y}`);
+                cell.style.backgroundColor = 'White';
+                cell.isSelected = 'false';
+                cell.isAvailableCell = 'false';
 
+                //Remove previous available end cells
+                availableEndCells.set('UpperEndCell', null);
+                availableEndCells.set('LowerEndCell', null);
+                availableEndCells.set('RightEndCell', null);
+                availableEndCells.set('LeftEndCell', null);
+                
+            }
+        }
+
+        cell.style.backgroundColor = 'DarkBlue';
+    
+        if(asInt(cell.dataset.x) - asInt(selectedShipLength) + 1 > 0)
+        {
+            let availableCell = cellsMap.get(`x${asInt(cell.dataset.x) - asInt(selectedShipLength) + 1}y${cell.dataset.y}`);        
+            setAvailableCell('LeftEndCell', availableCell);
+        }
+        if(asInt(cell.dataset.x) + asInt(selectedShipLength) - 1 < 11)
+        {
+            let availableCell = cellsMap.get(`x${asInt(cell.dataset.x) + asInt(selectedShipLength) - 1}y${cell.dataset.y}`);
+            setAvailableCell('RightEndCell', availableCell);
+        }
+        if(asInt(cell.dataset.y) - asInt(selectedShipLength) + 1 > 0)
+        {
+            let availableCell = cellsMap.get(`x${cell.dataset.x}y${asInt(cell.dataset.y) - asInt(selectedShipLength) + 1}`);
+            setAvailableCell('UpperEndCell', availableCell);
+        }
+        if(asInt(cell.dataset.y) + asInt(selectedShipLength) - 1 < 11)
+        {
+            let availableCell = cellsMap.get(`x${cell.dataset.x}y${asInt(cell.dataset.y) + asInt(selectedShipLength) - 1}`);
+            setAvailableCell('LowerEndCell', availableCell);
+        }
+    }
+}
+
+function setAvailableCell(key, availableCell)
+{
+    availableCell.isAvailableCell = 'true';
+    availableCell.style.backgroundColor = 'LightBlue';
+    availableEndCells.set(`${key}`, availableCell);
+}
+
+function asInt(value)
+{
+    //Casts value as integer
+    return value * 1;
 }
 
 function selectedShipsCell(cellID)
 {
     let cell = playerShipsMap.get(cellID);
+
+    for(let i = 1; i < 6; i++)
+    {
+        var cell = playerShipsMap.get(`${i}`);
+        cell.backgroundColor = 'White';
+        cell.isSelected = 'false';
+    }
 
     cell.dataset.isSelected = 'true';
 
