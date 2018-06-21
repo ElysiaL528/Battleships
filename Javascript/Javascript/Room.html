@@ -64,6 +64,7 @@ function drawGrids()
             cell.dataset.x = x;
             cell.dataset.y = y;
             cell.dataset.isAvailableCell = 'false';
+            cell.dataset.isShip = 'false';
             cellsMap.set(cell.id, cell);    
             row.appendChild(cell);
         }
@@ -132,7 +133,7 @@ function drawGrids()
                                         }
                                     };
 
-        shipsCell.onclick = () => {selectedShipsCell(shipsCell.id); };
+        shipsCell.onclick = () => { selectedShipsCell(shipsCell.id); };
         playerShipsMap.set(shipsCell.id, shipsCell);
         shipsRow.appendChild(shipsCell);
 
@@ -141,61 +142,130 @@ function drawGrids()
     }
 }
 
+
 var availableEndCells = new Map();
+var startCellX = 0;
+var startCellY = 0;
+
 
 function selectedCell(cellID)
 {
-    //Display all the available end cells
+    //Displays all the available end cells
     let cell = cellsMap.get(cellID);    
-    cell.dataset.isSelected = "true";
-    if(selectedShipID != null)
+    if(cell.dataset.isAvailableCell == "true")
     {
-        for(let y = 1; y < 11; y++)
+        //This happens when the player chooses an end cell for a ship
+
+        let shipOrientationID = 0;
+        if(availableEndCells.get('UpperEndCell') == cell)
         {
-            for(let x = 1; x < 11; x++)
+            shipOrientationID = 1;
+        }
+        else if(availableEndCells.get('LowerEndCell') == cell)
+        {
+            shipOrientationID = 2;
+        }
+        else if(availableEndCells.get('LeftEndCell') == cell)
+        {
+            shipOrientationID = 3;
+        }
+        else
+        {
+            shipOrientationID = 4;
+        }
+
+        var info = {
+            RoomID: localStorage.getItem('RoomID'),
+            UserID: localStorage.getItem('UserID'),
+            ShipTypeID: selectedShipID,
+            StartX: startCellX,
+            StartY: startCellY,
+            ShipOrientationID: shipOrientationID
+        };
+        callAPI("http://localhost:63055/api/Game/PlaceShip", (message) => {
+            //FINISH FUNCTION
+            if(message == "Placed ship")
             {
-                let cell = cellsMap.get(`x${x}y${y}`);
-                cell.style.backgroundColor = 'White';
-                cell.isSelected = 'false';
-                cell.isAvailableCell = 'false';
-
-                //Remove previous available end cells
-                availableEndCells.set('UpperEndCell', null);
-                availableEndCells.set('LowerEndCell', null);
-                availableEndCells.set('RightEndCell', null);
-                availableEndCells.set('LeftEndCell', null);
-                
+                if(shipOrientationID == 1 || shipOrientationID == 2) //Up or down
+                {
+                    let value = shipOrientationID == 1 ? cell.dataset.y : startCellY;
+                    for(i = value; i < cell.dataset.y + selectedShipLength; i += changeInI)
+                    {
+                        let tempCell = cellsMap.get(`x${cell.dataset.x}y${i}`);
+                        tempCell.style.backgroundColor = 'DarkBlue';
+                        tempCell.dataset.isSelected = 'true';
+                        tempCell.dataset.isShip = 'true';
+                    }
+                }
+                else if(shipOrientationID == 3 || shipOrientationID == 4)
+                {
+                    
+                }
             }
-        }
+            else
+            {
+                alert(`${message}`);
+            }
 
-        cell.style.backgroundColor = 'DarkBlue';
-    
-        if(asInt(cell.dataset.x) - asInt(selectedShipLength) + 1 > 0)
+        }, info)
+    }
+    else
+    {        
+        cell.dataset.isSelected = "true";
+        if(selectedShipID != null)
         {
-            let availableCell = cellsMap.get(`x${asInt(cell.dataset.x) - asInt(selectedShipLength) + 1}y${cell.dataset.y}`);        
-            setAvailableCell('LeftEndCell', availableCell);
-        }
-        if(asInt(cell.dataset.x) + asInt(selectedShipLength) - 1 < 11)
-        {
-            let availableCell = cellsMap.get(`x${asInt(cell.dataset.x) + asInt(selectedShipLength) - 1}y${cell.dataset.y}`);
-            setAvailableCell('RightEndCell', availableCell);
-        }
-        if(asInt(cell.dataset.y) - asInt(selectedShipLength) + 1 > 0)
-        {
-            let availableCell = cellsMap.get(`x${cell.dataset.x}y${asInt(cell.dataset.y) - asInt(selectedShipLength) + 1}`);
-            setAvailableCell('UpperEndCell', availableCell);
-        }
-        if(asInt(cell.dataset.y) + asInt(selectedShipLength) - 1 < 11)
-        {
-            let availableCell = cellsMap.get(`x${cell.dataset.x}y${asInt(cell.dataset.y) + asInt(selectedShipLength) - 1}`);
-            setAvailableCell('LowerEndCell', availableCell);
+            for(let y = 1; y < 11; y++)
+            {
+                for(let x = 1; x < 11; x++)
+                {
+                    let cell = cellsMap.get(`x${x}y${y}`);
+                    if(cell.dataset.isShip != "true")
+                    {
+                        cell.style.backgroundColor = 'White';
+                        cell.isSelected = 'false';
+                        cell.isAvailableCell = 'false';
+                    }
+
+                    //Remove previous available end cells
+                    availableEndCells.set('UpperEndCell', null);
+                    availableEndCells.set('LowerEndCell', null);
+                    availableEndCells.set('RightEndCell', null);
+                    availableEndCells.set('LeftEndCell', null);
+                    
+                }
+            }
+
+            cell.style.backgroundColor = 'DarkBlue';
+            startCellX = cell.dataset.x;
+            startCellY = cell.dataset.y;
+        
+            if(asInt(cell.dataset.x) - asInt(selectedShipLength) + 1 > 0)
+            {
+                let availableCell = cellsMap.get(`x${asInt(cell.dataset.x) - asInt(selectedShipLength) + 1}y${cell.dataset.y}`);        
+                setAvailableCell('LeftEndCell', availableCell);
+            }
+            if(asInt(cell.dataset.x) + asInt(selectedShipLength) - 1 < 11)
+            {
+                let availableCell = cellsMap.get(`x${asInt(cell.dataset.x) + asInt(selectedShipLength) - 1}y${cell.dataset.y}`);
+                setAvailableCell('RightEndCell', availableCell);
+            }
+            if(asInt(cell.dataset.y) - asInt(selectedShipLength) + 1 > 0)
+            {
+                let availableCell = cellsMap.get(`x${cell.dataset.x}y${asInt(cell.dataset.y) - asInt(selectedShipLength) + 1}`);
+                setAvailableCell('UpperEndCell', availableCell);
+            }
+            if(asInt(cell.dataset.y) + asInt(selectedShipLength) - 1 < 11)
+            {
+                let availableCell = cellsMap.get(`x${cell.dataset.x}y${asInt(cell.dataset.y) + asInt(selectedShipLength) - 1}`);
+                setAvailableCell('LowerEndCell', availableCell);
+            }
         }
     }
 }
 
 function setAvailableCell(key, availableCell)
 {
-    availableCell.isAvailableCell = 'true';
+    availableCell.dataset.isAvailableCell = 'true';
     availableCell.style.backgroundColor = 'LightBlue';
     availableEndCells.set(`${key}`, availableCell);
 }
@@ -212,12 +282,13 @@ function selectedShipsCell(cellID)
 
     for(let i = 1; i < 6; i++)
     {
-        var cell = playerShipsMap.get(`${i}`);
-        cell.backgroundColor = 'White';
-        cell.isSelected = 'false';
+        let temp = playerShipsMap.get(`${i}`);
+        temp.style.backgroundColor = 'White';
+        temp.isSelected = 'false';
     }
 
     cell.dataset.isSelected = 'true';
+    cell.style.backgroundColor = 'LightGreen';
 
     if(placedShips.get(cellID) == null)
     {
@@ -242,4 +313,5 @@ function callAPI(url, callback, body)
             xhr.send(JSON.stringify(body));
         }
     }
+    
 </script>
