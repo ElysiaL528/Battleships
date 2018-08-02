@@ -10,16 +10,20 @@
     <body onload = "drawGrids();">
         <h3></h3>
         <div id="gridPlaceHolder"></div>
+            <button id="donePlacingShips" onclick="SetPlayerReady();">Done Placing</button>
         
     </body>
 </html>
 <script src ="Cell.js"></script>
 <script>
-
+//Fix the potential of overlapping ships
+//Test checkReady function
+//Create randomize ships function (for quicker debugging)
 var cellsMap = new Map();
 var playerShipsMap = new Map();
 
-var placedShips = new Map();
+var placedShipsCells = new Map();
+var placedShipsIDs = new Map();
 
 var selectedShipID;
 var selectedShipLength = 0;
@@ -59,7 +63,7 @@ function drawGrids()
                                                 cell.style.backgroundColor = 'Transparent';
                                             }
                                     };
-            cell.onclick = () => { if(selectedShipID != null) {selectedCell(cell.id); }};
+            cell.onclick = () => { if(selectedShipID != null && placedShipsIDs.get(selectedShipID) == null) {selectedCell(cell.id); }};
             cell.dataset.isSelected = 'false';
             cell.dataset.x = x;
             cell.dataset.y = y;
@@ -140,12 +144,15 @@ function drawGrids()
         shipsCell.dataset.isSelected = 'false';
 
     }
+    let donePlacingButton = document.createElement('button');
+    donePlacingButton.style.backgroundColor = 'LightGreen';
 }
 
 
 var availableEndCells = new Map();
 var startCellX = 0;
 var startCellY = 0;
+
 
 
 function selectedCell(cellID)
@@ -183,24 +190,60 @@ function selectedCell(cellID)
             ShipOrientationID: shipOrientationID
         };
         callAPI("http://localhost:63055/api/Game/PlaceShip", (message) => {
-            //FINISH FUNCTION
+            //Continue working on placing ship; fix bug where if you select the start cell of a ship and want to select another ship, it still displays the available cells
             if(message == "Placed ship")
             {
                 if(shipOrientationID == 1 || shipOrientationID == 2) //Up or down
                 {
                     let value = shipOrientationID == 1 ? cell.dataset.y : startCellY;
-                    for(i = value; i < cell.dataset.y + selectedShipLength; i += changeInI)
+                    let changeInI = shipOrientationID == 1 ? 1 : -1;
+                    for(let i = asInt(value); asInt(i) < asInt(value) + asInt(selectedShipLength); i++)
                     {
                         let tempCell = cellsMap.get(`x${cell.dataset.x}y${i}`);
                         tempCell.style.backgroundColor = 'DarkBlue';
                         tempCell.dataset.isSelected = 'true';
                         tempCell.dataset.isShip = 'true';
+                        placedShipsCells.set(`${tempCell.id}`, selectedShipID);
                     }
                 }
                 else if(shipOrientationID == 3 || shipOrientationID == 4)
                 {
+                    let value = shipOrientationID == 3 ? cell.dataset.x : startCellX;
+                    let changeInI = shipOrientationID == 3 ? 1 : -1;
+                    for(let i = asInt(value); asInt(i) < asInt(value) + asInt(selectedShipLength); i++)
+                    {
+                        let tempCell = cellsMap.get(`x${i}y${cell.dataset.y}`);
+                        tempCell.style.backgroundColor = 'DarkBlue';
+                        tempCell.dataset.isSelected = 'true';
+                        tempCell.dataset.isShip = 'true';
+                        placedShipsCells.set(`${tempCell.id}`, selectedShipID);
+                    }
                     
                 }
+                
+                for(let y = 1; y < 11; y++)
+                {
+                    for(let x = 1; x < 11; x++)
+                    {
+                        let cell = cellsMap.get(`x${x}y${y}`);
+                        if(cell.dataset.isShip != "true")
+                        {
+                            cell.style.backgroundColor = 'White';
+                            cell.isSelected = 'false';
+                            cell.isAvailableCell = 'false';
+                        }
+
+                        //Remove previous available end cells
+                        availableEndCells.set('UpperEndCell', null);
+                        availableEndCells.set('LowerEndCell', null);
+                        availableEndCells.set('RightEndCell', null);
+                        availableEndCells.set('LeftEndCell', null);
+                        
+                    }
+                }
+                placedShipsIDs.set(selectedShipID, 1); //Records that we placed this type of ship (value doesn't matter)
+                playerShipsMap.get(selectedShipID).style.backgroundColor = 'LightBlue';
+                
             }
             else
             {
@@ -211,7 +254,6 @@ function selectedCell(cellID)
     }
     else
     {        
-        cell.dataset.isSelected = "true";
         if(selectedShipID != null)
         {
             for(let y = 1; y < 11; y++)
@@ -222,8 +264,8 @@ function selectedCell(cellID)
                     if(cell.dataset.isShip != "true")
                     {
                         cell.style.backgroundColor = 'White';
-                        cell.isSelected = 'false';
-                        cell.isAvailableCell = 'false';
+                        cell.dataset.isSelected = 'false';
+                        cell.dataset.isAvailableCell = 'false';
                     }
 
                     //Remove previous available end cells
@@ -235,29 +277,47 @@ function selectedCell(cellID)
                 }
             }
 
+            cell.dataset.isSelected = "true";
+
             cell.style.backgroundColor = 'DarkBlue';
             startCellX = cell.dataset.x;
             startCellY = cell.dataset.y;
         
             if(asInt(cell.dataset.x) - asInt(selectedShipLength) + 1 > 0)
             {
-                let availableCell = cellsMap.get(`x${asInt(cell.dataset.x) - asInt(selectedShipLength) + 1}y${cell.dataset.y}`);        
-                setAvailableCell('LeftEndCell', availableCell);
+                let cellID = `x${asInt(cell.dataset.x) - asInt(selectedShipLength) + 1}y${cell.dataset.y}`;
+                if(placedShipsCells.get(cellID) == null) //If the end cell doesn't coincide with another ship...
+                {
+                    let availableCell = cellsMap.get(cellID);        
+                    setAvailableCell('LeftEndCell', availableCell);
+                }
             }
             if(asInt(cell.dataset.x) + asInt(selectedShipLength) - 1 < 11)
             {
-                let availableCell = cellsMap.get(`x${asInt(cell.dataset.x) + asInt(selectedShipLength) - 1}y${cell.dataset.y}`);
-                setAvailableCell('RightEndCell', availableCell);
+                let cellID = `x${asInt(cell.dataset.x) + asInt(selectedShipLength) - 1}y${cell.dataset.y}`;
+                if(placedShipsCells.get(cellID) == null)
+                {
+                    let availableCell = cellsMap.get(cellID);
+                    setAvailableCell('RightEndCell', availableCell);
+                }
             }
             if(asInt(cell.dataset.y) - asInt(selectedShipLength) + 1 > 0)
             {
-                let availableCell = cellsMap.get(`x${cell.dataset.x}y${asInt(cell.dataset.y) - asInt(selectedShipLength) + 1}`);
-                setAvailableCell('UpperEndCell', availableCell);
+                let cellID = `x${cell.dataset.x}y${asInt(cell.dataset.y) - asInt(selectedShipLength) + 1}`;
+                if(placedShipsCells.get(cellID) == null)
+                {
+                    let availableCell = cellsMap.get(cellID);
+                    setAvailableCell('UpperEndCell', availableCell);
+                }
             }
             if(asInt(cell.dataset.y) + asInt(selectedShipLength) - 1 < 11)
             {
-                let availableCell = cellsMap.get(`x${cell.dataset.x}y${asInt(cell.dataset.y) + asInt(selectedShipLength) - 1}`);
-                setAvailableCell('LowerEndCell', availableCell);
+                let cellID = `x${cell.dataset.x}y${asInt(cell.dataset.y) + asInt(selectedShipLength) - 1}`;
+                if(placedShipsCells.get(cellID) == null)
+                {
+                    let availableCell = cellsMap.get(cellID);
+                    setAvailableCell('LowerEndCell', availableCell);
+                }
             }
         }
     }
@@ -283,18 +343,81 @@ function selectedShipsCell(cellID)
     for(let i = 1; i < 6; i++)
     {
         let temp = playerShipsMap.get(`${i}`);
-        temp.style.backgroundColor = 'White';
+        if(placedShipsIDs.get(temp.id) == null)
+        {
+            temp.style.backgroundColor = 'White';
+        }
         temp.isSelected = 'false';
     }
 
-    cell.dataset.isSelected = 'true';
-    cell.style.backgroundColor = 'LightGreen';
+    
 
-    if(placedShips.get(cellID) == null)
+    if(placedShipsIDs.get(cellID) == null)
     {
+        for(let y = 1; y < 11; y++)
+            {
+                for(let x = 1; x < 11; x++)
+                {
+                    let cell = cellsMap.get(`x${x}y${y}`);
+                    if(cell.dataset.isShip != "true")
+                    {
+                        cell.style.backgroundColor = 'White';
+                        cell.dataset.isSelected = 'false';
+                        cell.dataset.isAvailableCell = 'false';
+                    }
+
+                    //Remove previous available end cells
+                    availableEndCells.set('UpperEndCell', null);
+                    availableEndCells.set('LowerEndCell', null);
+                    availableEndCells.set('RightEndCell', null);
+                    availableEndCells.set('LeftEndCell', null);
+                    
+                }
+            }
+
+        cell.dataset.isSelected = 'true';
+        cell.style.backgroundColor = 'LightGreen';
+
         selectedShipID = cellID;
         selectedShipLength = cell.dataset.shipLength;
     }
+    else
+    {
+        cell.style.backgroundColor = 'LightBlue';
+    }
+}
+
+var checkReadyInterval;
+function SetPlayerReady()
+{
+    if(placedShipsIDs.size == 5)
+    {
+        var info = {
+            UserID: localStorage.getItem('UserID'),
+            RoomID: localStorage.getItem('RoomID')
+        };
+
+        callAPI("http://localhost:63055/api/Game/SetReady", () => {
+            //Wait for other player ready
+            checkReadyInterval = window.setInterval(() => 
+                callAPI("http://localhost:63055/api/Game/CheckReady", (opponentReadyStatus) => {
+                    if(opponentReadyStatus == "True")
+                    {
+                        window.clearInterval(checkReadyInterval);
+                        Gameplay();
+                    }
+                }, info));
+            }, info);
+    }
+    else
+    {
+        alert("Didn't place all ships");
+    }
+}
+
+function Gameplay()
+{
+
 }
 
 function callAPI(url, callback, body)
