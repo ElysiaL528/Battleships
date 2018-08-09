@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <title>WaitingScreen</title>
+    </head>
+    <style>
+        .title
+        {
+            margin:auto;
+            text-align:center;
+        }
+    </style>
+</html>
+<body>
+    <h3 class="title">Waiting for other player...</h3>
+</body>
+<script>
+    var checkForOpponentInterval;
+    var roomID = {
+        RoomID: localStorage.getItem('RoomID')
+    }
+    var opponentHasJoined = false;
+    
+    checkForOpponentInterval = window.setInterval(() => {
+        callAPI("http://localhost:63055/api/Room/CheckForOpponent", (opponentJoined) => {
+            if(opponentJoined == "true")
+            {
+                window.clearInterval();
+                window.location.href = "./Room.html"
+            }
+        }, roomID)
+    });
+
+function callAPI(url, callback, body)
+    {
+        var xhr = new XMLHttpRequest();
+        xhr.open(body === undefined ? 'GET' : 'POST', url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onload = () => callback(JSON.parse(xhr.responseText));
+
+        if(body === undefined)
+        {
+            xhr.send();
+        }
+        else
+        {
+            xhr.send(JSON.stringify(body));
+        }
+    }
+</script>

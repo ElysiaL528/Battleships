@@ -31,7 +31,7 @@
             callAPI('http://localhost:63055/api/Room/CreateRoom', (roomID) => {localStorage.setItem('RoomID', roomID);
             
             localStorage.setItem('RoomName', NewRoomTextBox.value);
-            window.location.href = "./Room.html"; }
+            window.location.href = "./WaitingScreen.html"; }
             , roomInfo);
         }
 

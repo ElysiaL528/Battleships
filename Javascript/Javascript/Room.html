@@ -16,6 +16,8 @@
 </html>
 <script src ="Cell.js"></script>
 <script>
+//FIX THE ARITHMETIC OVERFLOW ERROR IN THE API 
+//FIX THE CHECKPLAYERREADY FUNCTION/ FIND OUT WHY THE CONNECTION IS ALREADY OPEN
 //Fix the potential of overlapping ships
 //Test checkReady function
 //Create randomize ships function (for quicker debugging)
@@ -190,7 +192,6 @@ function selectedCell(cellID)
             ShipOrientationID: shipOrientationID
         };
         callAPI("http://localhost:63055/api/Game/PlaceShip", (message) => {
-            //Continue working on placing ship; fix bug where if you select the start cell of a ship and want to select another ship, it still displays the available cells
             if(message == "Placed ship")
             {
                 if(shipOrientationID == 1 || shipOrientationID == 2) //Up or down
@@ -399,14 +400,15 @@ function SetPlayerReady()
 
         callAPI("http://localhost:63055/api/Game/SetReady", () => {
             //Wait for other player ready
-            checkReadyInterval = window.setInterval(() => 
+            checkReadyInterval = window.setInterval(() => {
                 callAPI("http://localhost:63055/api/Game/CheckReady", (opponentReadyStatus) => {
                     if(opponentReadyStatus == "True")
                     {
                         window.clearInterval(checkReadyInterval);
                         Gameplay();
                     }
-                }, info));
+                }, info)
+                }, 500);
             }, info);
     }
     else
