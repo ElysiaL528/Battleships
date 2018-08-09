@@ -146,5 +146,21 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
             return table;
         }
+
+        [HttpPost]
+        [Route("CheckForOpponent")]
+        public bool CheckForOpponent([FromBody]Room room)
+        {
+            command.Parameters.Clear();
+            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = "usp_CheckForOpponent";
+            command.Connection = connection;
+            connection.Open();
+            var result = command.ExecuteScalar();
+            connection.Close();
+            bool opponentJoined = result.ToString() != "";
+            return opponentJoined;
+        }
     }
 }

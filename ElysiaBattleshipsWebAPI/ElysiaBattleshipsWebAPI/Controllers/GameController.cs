@@ -13,14 +13,14 @@ namespace ElysiaBattleshipsWebAPI.Controllers
     [EnableCors("*", "*", "*")]
     [RoutePrefix("api/Game")]
 
-    public class GameController :   ApiController
+    public class GameController : ApiController
     {
-        
+
         #region connectionstring
         static string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24 ";
         #endregion
         static SqlConnection connection = new SqlConnection(connectionstring);
-        
+
 
         /// <summary>
         /// An enum of the five ship types
@@ -39,7 +39,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// </summary>
         /// <param name="ship"></param>
         /// <returns></returns>
-
+        /// 
         [HttpPost]
         [Route("PlaceShip")]
 
@@ -162,7 +162,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [HttpPost]
         [Route("CheckReady")]
 
-        public DataTable checkPlayersReady([FromBody]Room room)
+        public string checkPlayersReady([FromBody]Room room)
         {
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
@@ -170,12 +170,12 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.CommandText = "usp_CheckUsersReady";
 
             command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
 
-            var table = new DataTable();
-            var adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
-
-            return table;
+            connection.Open();
+            string result = command.ExecuteScalar().ToString();
+            connection.Close();
+            return result;
 
         }
 
@@ -192,9 +192,11 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
             command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
 
+            connection.Open();
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
+            connection.Close();
 
             return table;
         }
