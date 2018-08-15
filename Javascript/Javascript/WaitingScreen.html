@@ -22,13 +22,13 @@
     
     checkForOpponentInterval = window.setInterval(() => {
         callAPI("http://localhost:63055/api/Room/CheckForOpponent", (opponentJoined) => {
-            if(opponentJoined == "true")
+            if(opponentJoined == true)
             {
                 window.clearInterval();
                 window.location.href = "./Room.html"
             }
         }, roomID)
-    });
+    }, 2000);
 
 function callAPI(url, callback, body)
     {
