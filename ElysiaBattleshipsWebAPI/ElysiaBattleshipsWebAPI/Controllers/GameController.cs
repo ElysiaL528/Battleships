@@ -1,133 +1,205 @@
-﻿using System;
+﻿using ElysiaBattleshipsWebAPI.Models;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace ElysiaBattleshipsWebAPI.Controllers
 {
+    [EnableCors("*", "*", "*")]
     [RoutePrefix("api/Game")]
 
-    public class GameController :   ApiController 
+    public class GameController : ApiController
     {
-        
+
         #region connectionstring
-        static string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = pleasant1 ";
+        static string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24 ";
         #endregion
         static SqlConnection connection = new SqlConnection(connectionstring);
 
-        
-        [Route("PlaceShip")]
-        [HttpPost]
-        public bool placeShip(int roomID, int userID, int startX, int startY, ShipNames shipName, int orientation)
+
+        /// <summary>
+        /// An enum of the five ship types
+        /// </summary>
+        public enum ShipTypes
         {
-            bool isValid = true;
-
-            SqlCommand command = new SqlCommand();
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_GetShips";
-            command.Parameters.Add(new SqlParameter("RoomID", roomID));
-            command.Parameters.Add(new SqlParameter("UserID", userID));
-
-            DataTable table = new DataTable();
-            SqlDataAdapter adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
-
-            for (int i = 1; i < table.Rows.Count + 1; i++)
-            {
-                int x = Convert.ToInt32(table.Rows[i]["X"]);
-                int y = Convert.ToInt32(table.Rows[i]["Y"]);
-                int shipLength = Convert.ToInt32(table.Rows[i]["ShipLength"]);
-                int orientationValueX = Convert.ToInt32(table.Rows[i]["OrientationValueX"]);
-                int orientationValueY = Convert.ToInt32(table.Rows[i]["OrientationValueY"]);
-
-                for (int j = 0; j < shipLength + 1; j++)
-                {
-                    if (startX >= x && startX <= x + shipLength - 1 && startY >= y && startY - 1 <= y + shipLength - 1)
-                    {
-                        isValid = false;
-                    }
-                    else if(startX <= x && startX > x - shipLength + 1 && startY < y && startY > y - shipLength + 1)
-                    {
-                        isValid = false;
-                    }
-                }
-            }
-            if(!isValid)
-            {
-                return false;
-            }
-            command.CommandText = "usp_PlaceShip";
-            command.Parameters.Add(new SqlParameter("ShipID", shipName));
-            command.Parameters.Add(new SqlParameter("UserID", userID));
-            command.Parameters.Add(new SqlParameter("RoomID", roomID));
-            command.Parameters.Add(new SqlParameter("X", startX));
-            command.Parameters.Add(new SqlParameter("Y", startY));
-            command.Parameters.Add(new SqlParameter("ShipOrientationID", orientation));
-
-            connection.Open();
-            command.ExecuteScalar();
-            connection.Close();
-            return true;
+            AircraftCarrier,
+            Battleship,
+            Cruiser,
+            Submarine,
+            Destroyer
         }
 
-        public bool isHit(int userID, int roomID, int inputX, int inputY)
-        {
+        /// <summary>
+        /// Returns a bool indicating whether or not the ship was placed.
+        /// </summary>
+        /// <param name="ship"></param>
+        /// <returns></returns>
+        /// 
+        [HttpPost]
+        [Route("PlaceShip")]
 
+        public string placeShip([FromBody]Ship ship)
+        {
+            SqlCommand command = new SqlCommand();
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = "usp_PlaceShip";
+            command.Connection = connection;
+            command.Parameters.Add(new SqlParameter("ShipTypeID", ship.ShipTypeID));
+            command.Parameters.Add(new SqlParameter("UserID", ship.UserID));
+            command.Parameters.Add(new SqlParameter("RoomID", ship.RoomID));
+            command.Parameters.Add(new SqlParameter("X", ship.StartX));
+            command.Parameters.Add(new SqlParameter("Y", ship.StartY));
+            command.Parameters.Add(new SqlParameter("ShipOrientationID", ship.ShipOrientationID));
+
+            string message = "";
+            connection.Open();
+            message = command.ExecuteScalar().ToString();
+            connection.Close();
+
+            return message;
+            
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="shot"></param>
+        /// <returns></returns>
+        /// 
+
+        [HttpPost]
+        [Route("Shoot")]
+        
+
+        public string ShotIsHit([FromBody]Shot shot)
+        {
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_GetShips";
-            command.Parameters.Add(new SqlParameter("RoomID", roomID));
-            command.Parameters.Add(new SqlParameter("UserID", userID));
+            command.CommandText = "usp_FireShot";
 
-            DataTable table = new DataTable();
-            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            command.Parameters.Add(new SqlParameter("UserID", shot.UserID));
+            command.Parameters.Add(new SqlParameter("RoomID", shot.RoomID));
+            command.Parameters.Add(new SqlParameter("ShotX", shot.X));
+            command.Parameters.Add(new SqlParameter("ShotY", shot.Y));
+
+            connection.Open();
+            var result = command.ExecuteScalar().ToString();
+            connection.Close();
+
+            return result;
+            }
+
+        [HttpPost]
+        [Route("GetShips")]
+
+
+        public List<Ship> getShips([FromBody]Room room)
+        {
+            SqlCommand command = new SqlCommand();
+            command.Connection = connection;
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = "usp_getShips";
+
+            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+
+            var table = new DataTable();
+            var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
 
-            for (int i = 0; i < table.Rows.Count; i++)
+            var shipsList = new List<Ship>();
+            foreach (DataRow playerShip in table.Rows)
             {
-                int shipX = Convert.ToInt32(table.Rows[i]["X"]);
-                int shipY = Convert.ToInt32(table.Rows[i]["Y"]);
-                int shipLength = Convert.ToInt32(table.Rows[i]["ShipLength"]);
-                int orientationValueX = Convert.ToInt32(table.Rows[i]["OrientationValueX"]);
-                int orientationValueY = Convert.ToInt32(table.Rows[i]["OrientationValueY"]);
+                int shipX = Convert.ToInt32(playerShip["X"]);
+                int shipY = Convert.ToInt32(playerShip["Y"]);
 
-                if (orientationValueX == 1)
-                {
-                    if (inputX >= shipX && inputX <= shipX + shipLength)
-                    {
-                        return true;
-                    }
-                }
-                else if (orientationValueX == -1)
-                {
-                    if(inputX <= shipX && inputX >= shipX - shipLength)
-                    {
-                        return true;
-                    }
-                }
-                else if(orientationValueY == -1)
-                {
-                    if(inputY >= shipY && inputY <= shipY + shipLength)
-                    {
-                        return true;
-                    }
-                }
-                else if(orientationValueY == 1)
-                {
-                    if(inputY <= shipY && inputY >= shipY - shipLength)
-                    {
-                        return true;
-                    }
-                }
+                int shipOrientationID = Convert.ToInt32(playerShip["ShipOrientationID"]);
+                int shipTypeID = Convert.ToInt32(playerShip["ShipTypeID"]);
+
+                int hitCount = Convert.ToInt32(playerShip["HitCount"]);
+
+                Ship ship = new Ship(room.PlayerID, room.RoomID, shipX, shipY, shipTypeID, shipOrientationID);
+                shipsList.Add(ship);
             }
-            return false;
+
+
+            return shipsList;
         }
 
+        [HttpPost]
+        [Route("NewShots")]
 
+        public bool checkForShots([FromBody]Room room)
+        {
+            SqlCommand command = new SqlCommand();
+            command.Connection = connection;
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = "usp_CheckForNewShots";
+
+            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+            command.Parameters.Add(new SqlParameter("LastShotID", room.LastShotID));
+
+            var table = new DataTable();
+            var adapter = new SqlDataAdapter(command);
+            adapter.Fill(table);
+
+            bool newShots = true;
+
+            if (table.Rows.Count == 0)
+            {
+                newShots = false;
+            }
+
+            return newShots;
+        }
+
+        [HttpPost]
+        [Route("CheckReady")]
+
+        public string checkPlayersReady([FromBody]Room room)
+        {
+            SqlCommand command = new SqlCommand();
+            command.Connection = connection;
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = "usp_CheckUsersReady";
+
+            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+
+            connection.Open();
+            string result = command.ExecuteScalar().ToString();
+            connection.Close();
+            return result;
+
+        }
+
+        [HttpPost]
+        [Route("SetReady")]
+
+        public bool setPlayerReady([FromBody]Room room)
+        {
+            SqlCommand command = new SqlCommand();
+            command.Connection = connection;
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = "usp_SetUserReady";
+
+            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+
+            connection.Open();
+            var table = new DataTable();
+            var adapter = new SqlDataAdapter(command);
+            adapter.Fill(table);
+            connection.Close();
+
+            return table;
+        }
 
     }
 }
