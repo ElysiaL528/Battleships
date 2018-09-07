@@ -36,7 +36,7 @@
         }
     
     }
-
+    var roomIDNum;
     function joinRoom(roomID)
     {
         
@@ -44,6 +44,7 @@
             PlayerID: localStorage.getItem('UserID'),
             RoomID: roomID
         };
+        roomIDNum = roomID;
         callAPI("http://localhost:63055/api/Room/JoinRoom", storeRoomInfo, info);
     }
     function storeRoomInfo(errorMessage)
@@ -54,7 +55,8 @@
         }
         else
         {
-            window.location.href = './Room.html'
+            localStorage.setItem('RoomID', roomIDNum);
+            window.location.href = './GameSetup.html';
         }
     }
     function callAPI(url, callback, body)

@@ -16,7 +16,6 @@
 </html>
 <script src ="Cell.js"></script>
 <script>
-//FIX THE ARITHMETIC OVERFLOW ERROR IN THE API 
 //FIX THE CHECKPLAYERREADY FUNCTION/ FIND OUT WHY THE CONNECTION IS ALREADY OPEN
 //Fix the potential of overlapping ships
 //Test checkReady function
@@ -393,35 +392,13 @@ function SetPlayerReady()
 {
     if(placedShipsIDs.size == 5)
     {
-        var info = {
-            UserID: localStorage.getItem('UserID'),
-            RoomID: localStorage.getItem('RoomID')
-        };
-
-        callAPI("http://localhost:63055/api/Game/SetReady", () => {
-            //Wait for other player ready
-            checkReadyInterval = window.setInterval(() => {
-                callAPI("http://localhost:63055/api/Game/CheckReady", (opponentReadyStatus) => {
-                    if(opponentReadyStatus == "True")
-                    {
-                        window.clearInterval(checkReadyInterval);
-                        Gameplay();
-                    }
-                }, info)
-                }, 2000);
-            }, info);
+        window.location.href = "./Gameplay.html";
     }
     else
     {
         alert("Didn't place all ships");
     }
 }
-
-function Gameplay()
-{
-
-}
-
 function callAPI(url, callback, body)
     {
         var xhr = new XMLHttpRequest();

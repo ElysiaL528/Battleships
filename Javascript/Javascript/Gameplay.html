@@ -1,0 +1,65 @@
+<html>
+    <head>
+        <title>Battleships</title>
+        <head>
+
+        </head>
+        <body onload="WaitUntilOpponentReady();">
+            <p id="waitingText">Waiting for opponent ready...</p>
+            <div id="playerShips"></div>
+            <div id="playerAttacks"></div>
+        </body>
+    </head>
+</html>
+<script>
+    //Make a table class so the draw grids function in game setup doesn't need to be unecessarily copied in here
+    var waitingText = document.getElementById("waitingText");
+    function WaitUntilOpponentReady()
+    {   
+        document.body.appendChild(waitingText);
+        var info = {
+                PlayerID: localStorage.getItem('UserID'),
+                RoomID: localStorage.getItem('RoomID')
+            };
+
+            callAPI("http://localhost:63055/api/Game/SetReady", () => {
+                //Wait for other player ready
+                checkReadyInterval = window.setInterval(() => {
+                    callAPI("http://localhost:63055/api/Game/CheckReady", (opponentReadyStatus) => {
+                        if(opponentReadyStatus == "True")
+                        {
+                            window.clearInterval(checkReadyInterval);
+                            waitingText.style.display = "none";
+                            Gameplay();
+                        }
+                    }, info)
+                    }, 5000);
+                }, info);
+    }
+    function DrawGrids()
+    {
+        //this function should be essentially identical to the one in GameSetup
+    }
+
+    function Gameplay()
+    {
+        DrawGrids();
+    }
+    
+    function callAPI(url, callback, body)
+    {
+        var xhr = new XMLHttpRequest();
+        xhr.open(body === undefined ? 'GET' : 'POST', url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onload = () => callback(JSON.parse(xhr.responseText));
+
+        if(body === undefined)
+        {
+            xhr.send();
+        }
+        else
+        {
+            xhr.send(JSON.stringify(body));
+        }
+    }
+</script>
