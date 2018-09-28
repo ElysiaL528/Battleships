@@ -13,6 +13,9 @@
 </html>
 <script>
     //Make a table class so the draw grids function in game setup doesn't need to be unecessarily copied in here
+    
+    var selectedCells = new Map();
+
     var waitingText = document.getElementById("waitingText");
     function WaitUntilOpponentReady()
     {   
@@ -38,12 +41,110 @@
     }
     function DrawGrids()
     {
-        //this function should be essentially identical to the one in GameSetup
+        //Player attacks 
+        let playerShotsBoard = document.createElement('table');
+        playerShotsBoard.id = 'playerShotsBoard';
+        playerShotsBoard.style.outline = '1px solid Black';
+
+        document.body.appendChild(playerShotsBoard);
+
+        let gridCellSize = 50;
+
+        for(let y = 1; y <= 10; y++)
+        {
+            let row = document.createElement('tr');
+            playerShotsBoard.appendChild(row);
+            for(let x = 1; x <= 10; x++)
+            {
+                let cell = document.createElement('td');
+
+                cell.id = `playerShotx${x}y${y}`;
+                cell.style.width = `${gridCellSize}px`;
+                cell.style.height = `${gridCellSize}px`;
+                cell.style.outline = `1px solid Black`;
+                cell.onmouseover = () =>    {
+                                                if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
+                                                {
+                                                    cell.style.backgroundColor = 'LightBlue';
+                                                }
+                                            };
+                cell.onmouseout = () => {
+                                            if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
+                                            {
+                                                cell.style.backgroundColor = 'Transparent'; 
+                                            }
+                                        };
+                cell.onclick = fireShot(cell.id);
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                cell.dataset.isSelected = false;
+                row.appendChild(cell);
+            }
+        }
+
+        //Opponent's attacks
+
+        let opponentAttacksBoard = document.createElement("table");
+        opponentAttacksBoard.id = "opponentAttacksBoard";
+        opponentAttacksBoard.style.outline = "1px solid Black";
+
+        for(let y = 1; y <= 10; y++)
+        {
+            let row = document.createElement("tr");
+            opponentAttacksBoard.appendChild(row);
+            for(let x = 1; x <= 10; x++)
+            {
+                let cell = document.createElement("td");
+                cell.id = `opponentAttacksx${x}y${y}`;
+                cell.style.width = `${gridCellSize}px`;
+                cell.style.height = `${gridCellSize}px`;
+                cell.style.outline = "1px solid Black";
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                cell.dataset.status = "Neutral"; //"Neutral" if the opponent hasn't selected it yet, otherwise it's "Hit" or "Miss"
+                //Modify the stored proc so the user knows when they sink a ship
+
+                row.appendChild(cell);
+            }
+        }
     }
 
     function Gameplay()
     {
         DrawGrids();
+    }
+
+    function asInt(value)
+    {
+    //Casts value as integer
+    return value * 1;
+    }
+
+    function fireShot(cellID)
+    {
+        // let cell = document.getElementById(cellID);
+        // let info = {
+        //     UserID: localStorage.getItem('UserID'),
+        //     RoomID: localStorage.getItem('RoomID'),
+        // };
+        
+        // if(selectedCells.get(cellID) == null)
+        // {
+        //     callAPI("http://localhost:63055/api/Game/Shoot", (message) => 
+        //     {
+        //         if(message == "Miss")
+        //         {
+        //             cell.style.backgroundColor = 'White';
+        //             selectedCells.set(cellID, "M");
+        //         }
+        //         else
+        //         {
+        //             cell.style.backgroundColor = 'Red';
+        //             selectedCells.set(cellID, "H");
+        //         }
+        //     }, info);
+        // }
+        
     }
     
     function callAPI(url, callback, body)

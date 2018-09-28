@@ -271,7 +271,7 @@ namespace ElysiaBattleshipsWebAPI.Tests
 
             var room = new Room(roomID, roomName, "", hostPlayerID);
 
-            DataTable usersReadyStatus = gameController.checkPlayersReady(room);
+            string usersReadyStatus = gameController.checkPlayersReady(room);
 
             //Delete test data
             command.CommandText = "usp_DeleteTestData";
@@ -280,6 +280,8 @@ namespace ElysiaBattleshipsWebAPI.Tests
             connection.Open();
             command.ExecuteScalar();
             connection.Close();
+
+            Assert.AreEqual("False", usersReadyStatus);
 
         }
 
