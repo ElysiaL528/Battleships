@@ -12,7 +12,6 @@
     </head>
 </html>
 <script>
-    //Make a table class so the draw grids function in game setup doesn't need to be unecessarily copied in here
     
     var selectedCells = new Map();
 
@@ -58,23 +57,25 @@
             {
                 let cell = document.createElement('td');
 
-                cell.id = `playerShotx${x}y${y}`;
+                cell.id = `playerShotsx${x}y${y}`;
                 cell.style.width = `${gridCellSize}px`;
                 cell.style.height = `${gridCellSize}px`;
                 cell.style.outline = `1px solid Black`;
                 cell.onmouseover = () =>    {
-                                                if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
-                                                {
-                                                    cell.style.backgroundColor = 'LightBlue';
-                                                }
+                                                // if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
+                                                // {
+                                                //     cell.style.backgroundColor = 'LightBlue';
+                                                // }
+                                                cell.style.backgroundColor = 'LightBlue';
                                             };
                 cell.onmouseout = () => {
-                                            if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
-                                            {
-                                                cell.style.backgroundColor = 'Transparent'; 
-                                            }
+                                            // if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
+                                            // {
+                                            //     cell.style.backgroundColor = 'Transparent'; 
+                                            // }
+                                            cell.style.backgroundColor = 'Transparent'; 
                                         };
-                cell.onclick = fireShot(cell.id);
+                cell.onclick = () => { fireShot(cell.id)};
                 cell.dataset.x = x;
                 cell.dataset.y = y;
                 cell.dataset.isSelected = false;
@@ -122,28 +123,33 @@
 
     function fireShot(cellID)
     {
-        // let cell = document.getElementById(cellID);
-        // let info = {
-        //     UserID: localStorage.getItem('UserID'),
-        //     RoomID: localStorage.getItem('RoomID'),
-        // };
+        let cell = document.getElementById(cellID);
+        let x = cell.dataset.x;
+        let y = cell.dataset.y;
+
+        let info = {
+            UserID: localStorage.getItem('UserID'),
+            RoomID: localStorage.getItem('RoomID'),
+            ShotX: x,
+            ShotY: y
+        };
         
-        // if(selectedCells.get(cellID) == null)
-        // {
-        //     callAPI("http://localhost:63055/api/Game/Shoot", (message) => 
-        //     {
-        //         if(message == "Miss")
-        //         {
-        //             cell.style.backgroundColor = 'White';
-        //             selectedCells.set(cellID, "M");
-        //         }
-        //         else
-        //         {
-        //             cell.style.backgroundColor = 'Red';
-        //             selectedCells.set(cellID, "H");
-        //         }
-        //     }, info);
-        // }
+        if(selectedCells.get(cellID) == null) //Ensures that the cell hasn't already been selected yet
+        {
+            callAPI("http://localhost:63055/api/Game/Shoot", (message) => 
+            {
+                if(message == "Miss")
+                {
+                    cell.style.backgroundColor = 'White';
+                    selectedCells.set(cellID, "M");
+                }
+                else
+                {
+                    cell.style.backgroundColor = 'Red';
+                    selectedCells.set(cellID, "H");
+                }
+            }, info);
+        }
         
     }
     
