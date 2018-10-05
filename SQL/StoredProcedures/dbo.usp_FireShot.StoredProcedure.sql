@@ -1,10 +1,12 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_FireShot]    Script Date: 2/16/2018 12:39:46 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_FireShot]    Script Date: 10/5/2018 2:00:46 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
+
 
 
 
@@ -19,7 +21,6 @@ CREATE PROC [dbo].[usp_FireShot]
 ,	@RoomID			int
 ,	@ShotX			int	
 ,	@ShotY			int		
-,	@IsTestData		bit
 as
 
 DECLARE @ErrorMessage varchar(20)
@@ -31,12 +32,26 @@ BEGIN
 
 	DECLARE @isHit bit = 0
 
+	DECLARE @IsTestData bit = (SELECT isTestData FROM Users WHERE UserID = @UserID)
+
 	IF @hitShipID IS NOT NULL
 	BEGIN
 		SET @isHit = 1
 		UPDATE UserShips
 		SET hitCount = hitCount + 1 WHERE ShipID = @hitShipID
-		SET @ErrorMessage = 'Hit'
+		DECLARE @hitCount int = (SELECT hitCount FROM UserShips WHERE ShipID = @hitShipID);
+		DECLARE @shipSize int = (	SELECT s.ShipLength 
+									FROM Ships s 
+									JOIN UserShips us
+									ON us.ShipID = s.ShipID);
+		IF(@hitCount < @shipSize)
+		BEGIN
+			SET @ErrorMessage = 'Hit'
+		END
+		ELSE
+		BEGIN
+			SET @ErrorMessage = @hitShipID;
+		END
 	END
 	ELSE
 	BEGIN
@@ -53,6 +68,8 @@ SET @ErrorMessage = 'Pre-existing shot'
 END
 
 SELECT @ErrorMessage
+
+
 
 
 GO
