@@ -1,6 +1,6 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_FireShot]    Script Date: 10/5/2018 2:00:46 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_FireShot]    Script Date: 10/5/2018 2:23:00 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -43,14 +43,16 @@ BEGIN
 		DECLARE @shipSize int = (	SELECT s.ShipLength 
 									FROM Ships s 
 									JOIN UserShips us
-									ON us.ShipID = s.ShipID);
+									ON us.ShipTypeID = s.ShipID
+									WHERE us.ShipID = @hitShipID);
 		IF(@hitCount < @shipSize)
 		BEGIN
 			SET @ErrorMessage = 'Hit'
 		END
 		ELSE
 		BEGIN
-			SET @ErrorMessage = @hitShipID;
+			DECLARE @shipType int = (SELECT ShipTypeID FROM UserShips WHERE ShipID = @hitShipID);
+			SET @ErrorMessage = @shipType;
 		END
 	END
 	ELSE
