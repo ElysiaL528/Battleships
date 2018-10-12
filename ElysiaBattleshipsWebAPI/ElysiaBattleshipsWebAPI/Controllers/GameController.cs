@@ -132,10 +132,15 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             return shipsList;
         }
 
+        /// <summary>
+        /// Checks if/where the opponents attacked
+        /// </summary>
+        /// <param name="room"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("NewShots")]
-
-        public bool checkForShots([FromBody]Room room)
+        
+        public List<int> checkForShots([FromBody]Room room)
         {
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
@@ -145,10 +150,17 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
             command.Parameters.Add(new SqlParameter("LastShotID", room.LastShotID));
 
+            connection.Open();
+            var shot = command.ExecuteScalar();
+            connection.Close();
+            
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
 
+            int x = Convert.ToInt32(table.Rows[0]["X"]);
+            int y = Convert.ToInt32(table.Rows[0]["Y"]);
+            /*
             bool newShots = true;
 
             if (table.Rows.Count == 0)
@@ -157,6 +169,13 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             }
 
             return newShots;
+            */
+
+            var shotCoordinates = new List<int>();
+            shotCoordinates.Add(x);
+            shotCoordinates.Add(y);
+            
+            return shotCoordinates;
         }
 
         [HttpPost]

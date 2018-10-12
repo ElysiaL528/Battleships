@@ -13,8 +13,10 @@
 </html>
 <script>
     
+    var isPlayerTurn = false;
+    var gameOver = false;
+    var sunkShipTypeID;
     var selectedCells = new Map();
-
     var waitingText = document.getElementById("waitingText");
     function WaitUntilOpponentReady()
     {   
@@ -62,18 +64,16 @@
                 cell.style.height = `${gridCellSize}px`;
                 cell.style.outline = `1px solid Black`;
                 cell.onmouseover = () =>    {
-                                                // if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
-                                                // {
-                                                //     cell.style.backgroundColor = 'LightBlue';
-                                                // }
-                                                cell.style.backgroundColor = 'LightBlue';
+                                                if(cell.dataset.isSelected == "false") 
+                                                {
+                                                    cell.style.backgroundColor = 'LightBlue';
+                                                }
                                             };
                 cell.onmouseout = () => {
-                                            // if(cell.dataset.isSelected == "false" && cell.dataset.isAvailableCell == 'false') 
-                                            // {
-                                            //     cell.style.backgroundColor = 'Transparent'; 
-                                            // }
-                                            cell.style.backgroundColor = 'Transparent'; 
+                                            if(cell.dataset.isSelected == "false") 
+                                            {
+                                                cell.style.backgroundColor = 'Transparent'; 
+                                            }
                                         };
                 cell.onclick = () => { fireShot(cell.id)};
                 cell.dataset.x = x;
@@ -102,53 +102,100 @@
                 cell.style.outline = "1px solid Black";
                 cell.dataset.x = x;
                 cell.dataset.y = y;
-                cell.dataset.status = "Neutral"; //"Neutral" if the opponent hasn't selected it yet, otherwise it's "Hit" or "Miss"
-                //Modify the stored proc so the user knows when they sink a ship
 
                 row.appendChild(cell);
             }
         }
     }
 
+    var LastShotID;
     function Gameplay()
     {
         DrawGrids();
+        if(localStorage.getItem("IsHost") == "true")
+        {
+            isPlayerTurn = true;
+        }
+        else
+        {
+            isPlayerTurn = false;
+        }
+        LastShotID = -1;
+        while(!gameOver)
+        {
+            if(!isPlayerTurn)
+            {
+                let lastShotInfo = 
+                {
+                    RoomID: localStorage.getItem("RoomID"),
+                    LastShotID: LastShotID
+                };
+                //Record the coordinates of the shot and set it to the player's turn
+                callAPI("http://localhost:63055/api/Game/NewShots", (shotCoordinates) => {
+                    if(shotCoordinates != null)
+                    {
+
+                    }
+
+                }, lastShotInfo);
+            }
+        }
     }
 
     function asInt(value)
     {
-    //Casts value as integer
-    return value * 1;
+        //Casts value as integer
+        return value * 1;
     }
 
     function fireShot(cellID)
     {
-        let cell = document.getElementById(cellID);
-        let x = cell.dataset.x;
-        let y = cell.dataset.y;
-
-        let info = {
-            UserID: localStorage.getItem('UserID'),
-            RoomID: localStorage.getItem('RoomID'),
-            ShotX: x,
-            ShotY: y
-        };
-        
-        if(selectedCells.get(cellID) == null) //Ensures that the cell hasn't already been selected yet
+        if(isPlayerTurn = true)
         {
-            callAPI("http://localhost:63055/api/Game/Shoot", (message) => 
+            let cell = document.getElementById(cellID);
+            let x = cell.dataset.x;
+            let y = cell.dataset.y;
+
+            let info = {
+                UserID: localStorage.getItem('UserID'),
+                RoomID: localStorage.getItem('RoomID'),
+                X: x,
+                Y: y
+            };
+            
+            if(cell.dataset.isSelected = "false") //Ensures that the cell hasn't already been selected yet
             {
-                if(message == "Miss")
+                cell.dataset.isSelected = "true";
+                callAPI("http://localhost:63055/api/Game/Shoot", (message) => 
                 {
-                    cell.style.backgroundColor = 'White';
-                    selectedCells.set(cellID, "M");
-                }
-                else
-                {
-                    cell.style.backgroundColor = 'Red';
-                    selectedCells.set(cellID, "H");
-                }
-            }, info);
+                    switch(message)
+                    {
+                        case "Miss":
+                            cell.style.backgroundColor = 'Gray';
+                            selectedCells.set(cellID, "M");
+                        break;
+
+                        case "Hit":
+                            cell.style.backgroundColor = 'Red';
+                            selectedCells.set(cellID, "H");
+                        break;
+
+                        case "Pre-existing shot":
+                            //Do nothing
+                        break;
+
+                        default:
+                            cell.style.backgroundColor = 'Red';
+                            sunkShipTypeID = message;
+                        break;
+                    }
+
+                }, info);
+            }
+        }
+        else
+        {
+            alert("Not your turn");
         }
         
     }
