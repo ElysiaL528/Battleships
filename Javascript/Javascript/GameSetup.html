@@ -11,15 +11,14 @@
         <h3></h3>
         <div id="gridPlaceHolder"></div>
             <button id="donePlacingShips" onclick="SetPlayerReady();">Done Placing</button>
-        
+        <button id="randomizeButton" onclick="RandomizeShips();">Randomize ship placement</button>
     </body>
 </html>
 <script src ="Cell.js"></script>
 <script>
-//FIX THE CHECKPLAYERREADY FUNCTION/ FIND OUT WHY THE CONNECTION IS ALREADY OPEN
-//Fix the potential of overlapping ships
 //Test checkReady function
 //Create randomize ships function (for quicker debugging)
+//Figure out why the page keeps crashing after both players are done placing
 var cellsMap = new Map();
 var playerShipsMap = new Map();
 
@@ -155,34 +154,9 @@ var startCellX = 0;
 var startCellY = 0;
 
 
-
-function selectedCell(cellID)
+function PlaceShip(cell, shipOrientationID, alertIfInvalid) //cell, integer, bool
 {
-    //Displays all the available end cells
-    let cell = cellsMap.get(cellID);    
-    if(cell.dataset.isAvailableCell == "true")
-    {
-        //This happens when the player chooses an end cell for a ship
-
-        let shipOrientationID = 0;
-        if(availableEndCells.get('UpperEndCell') == cell)
-        {
-            shipOrientationID = 1;
-        }
-        else if(availableEndCells.get('LowerEndCell') == cell)
-        {
-            shipOrientationID = 2;
-        }
-        else if(availableEndCells.get('LeftEndCell') == cell)
-        {
-            shipOrientationID = 3;
-        }
-        else
-        {
-            shipOrientationID = 4;
-        }
-
-        var info = {
+    var info = {
             RoomID: localStorage.getItem('RoomID'),
             UserID: localStorage.getItem('UserID'),
             ShipTypeID: selectedShipID,
@@ -243,14 +217,41 @@ function selectedCell(cellID)
                 }
                 placedShipsIDs.set(selectedShipID, 1); //Records that we placed this type of ship (value doesn't matter)
                 playerShipsMap.get(selectedShipID).style.backgroundColor = 'LightBlue';
-                
             }
-            else
+            else if(alertIfInvalid == true)
             {
-                alert(`${message}`);
+                alert(message);
             }
+        }, info);
+}
 
-        }, info)
+
+function selectedCell(cellID)
+{
+    //Displays all the available end cells
+    let cell = cellsMap.get(cellID);    
+    if(cell.dataset.isAvailableCell == "true")
+    {
+        //This happens when the player chooses an end cell for a ship
+
+        let shipOrientationID = 0;
+        if(availableEndCells.get('UpperEndCell') == cell)
+        {
+            shipOrientationID = 1;
+        }
+        else if(availableEndCells.get('LowerEndCell') == cell)
+        {
+            shipOrientationID = 2;
+        }
+        else if(availableEndCells.get('LeftEndCell') == cell)
+        {
+            shipOrientationID = 3;
+        }
+        else
+        {
+            shipOrientationID = 4;
+        }
+        PlaceShip(cell, shipOrientationID, true);
     }
     else
     {        
@@ -384,6 +385,33 @@ function selectedShipsCell(cellID)
     else
     {
         cell.style.backgroundColor = 'LightBlue';
+    }
+}
+
+function RandomizeShips()
+{
+    //Delete any pre-existing ships
+    //Restructure this function so it's not using a while loop
+    //ac = aircraft carrier, b = battleship, s = submarine, c = cruiser, d = destroyer
+    let placedShip = false;
+
+    for(let i = 1; i < 5; i++)
+    {
+        while(!placedShip)
+        {
+            startCellX = Math.floor(Math.random() * 10 + 1);
+            startCellY = Math.floor(Math.random() * 10 + 1);
+            let orientationID = Math.floor(Math.random() * 4 + 1);
+
+            let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
+
+            PlaceShip(cell, orientationID, false);
+
+            if(placedShipIds.get(i) == 1) //i is the ship type ID
+            {
+                placedShip = true;
+            }
+        }
     }
 }
 
