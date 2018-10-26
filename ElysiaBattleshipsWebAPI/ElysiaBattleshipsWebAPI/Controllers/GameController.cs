@@ -15,12 +15,10 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
     public class GameController : ApiController
     {
-
+        //Have all functions declare the connection in using statements (also change in Room Controller)
         #region connectionstring
-        static string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24 ";
+        static readonly string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24 ";
         #endregion
-        static SqlConnection connection = new SqlConnection(connectionstring);
-
 
         /// <summary>
         /// An enum of the five ship types
@@ -45,24 +43,29 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public string placeShip([FromBody]Ship ship)
         {
-            SqlCommand command = new SqlCommand();
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_PlaceShip";
-            command.Connection = connection;
-            command.Parameters.Add(new SqlParameter("ShipTypeID", ship.ShipTypeID));
-            command.Parameters.Add(new SqlParameter("UserID", ship.UserID));
-            command.Parameters.Add(new SqlParameter("RoomID", ship.RoomID));
-            command.Parameters.Add(new SqlParameter("X", ship.StartX));
-            command.Parameters.Add(new SqlParameter("Y", ship.StartY));
-            command.Parameters.Add(new SqlParameter("ShipOrientationID", ship.ShipOrientationID));
-
             string message = "";
-            connection.Open();
-            message = command.ExecuteScalar().ToString();
-            connection.Close();
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_PlaceShip";
+                    command.Connection = connection;
+                    command.Parameters.Add(new SqlParameter("ShipTypeID", ship.ShipTypeID));
+                    command.Parameters.Add(new SqlParameter("UserID", ship.UserID));
+                    command.Parameters.Add(new SqlParameter("RoomID", ship.RoomID));
+                    command.Parameters.Add(new SqlParameter("X", ship.StartX));
+                    command.Parameters.Add(new SqlParameter("Y", ship.StartY));
+                    command.Parameters.Add(new SqlParameter("ShipOrientationID", ship.ShipOrientationID));
+
+                    connection.Open();
+                    message = command.ExecuteScalar().ToString();
+                    connection.Close();
+                }
+            }
 
             return message;
-            
+
         }
 
         /// <summary>
@@ -74,10 +77,11 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         [HttpPost]
         [Route("Shoot")]
-        
+
 
         public string ShotIsHit([FromBody]Shot shot)
         {
+            SqlConnection connection = new SqlConnection(connectionstring);
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.CommandType = CommandType.StoredProcedure;
@@ -93,7 +97,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             connection.Close();
 
             return result;
-            }
+        }
 
         [HttpPost]
         [Route("GetShips")]
@@ -101,6 +105,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public List<Ship> getShips([FromBody]Room room)
         {
+            SqlConnection connection = new SqlConnection(connectionstring);
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.CommandType = CommandType.StoredProcedure;
@@ -139,9 +144,10 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("NewShots")]
-        
+
         public List<int> checkForShots([FromBody]Room room)
         {
+            SqlConnection connection = new SqlConnection(connectionstring);
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.CommandType = CommandType.StoredProcedure;
@@ -153,7 +159,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             connection.Open();
             var shot = command.ExecuteScalar();
             connection.Close();
-            
+
             var table = new DataTable();
             var adapter = new SqlDataAdapter(command);
             adapter.Fill(table);
@@ -174,7 +180,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
             var shotCoordinates = new List<int>();
             shotCoordinates.Add(x);
             shotCoordinates.Add(y);
-            
+
             return shotCoordinates;
         }
 
@@ -183,6 +189,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public string checkPlayersReady([FromBody]Room room)
         {
+            SqlConnection connection = new SqlConnection(connectionstring);
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.CommandType = CommandType.StoredProcedure;
@@ -203,6 +210,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public DataTable setPlayerReady([FromBody]Room room)
         {
+            SqlConnection connection = new SqlConnection(connectionstring);
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.CommandType = CommandType.StoredProcedure;

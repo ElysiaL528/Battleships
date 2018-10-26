@@ -391,13 +391,13 @@ function selectedShipsCell(cellID)
 function RandomizeShips()
 {
     //Delete any pre-existing ships
-    //Restructure this function so it's not using a while loop
     //ac = aircraft carrier, b = battleship, s = submarine, c = cruiser, d = destroyer
     let placedShip = false;
+    var interval;
 
     for(let i = 1; i < 5; i++)
     {
-        while(!placedShip)
+        interval = window.setInterval(() => 
         {
             startCellX = Math.floor(Math.random() * 10 + 1);
             startCellY = Math.floor(Math.random() * 10 + 1);
@@ -405,13 +405,15 @@ function RandomizeShips()
 
             let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
 
-            PlaceShip(cell, orientationID, false);
+            selectedShipID = i;
 
-            if(placedShipIds.get(i) == 1) //i is the ship type ID
+            PlaceShip(cell, orientationID, false);   
+
+            if(placedShipsIDs.get(i) == 1) //i is the ship type ID
             {
                 placedShip = true;
             }
-        }
+        }, 5000);
     }
 }
 
