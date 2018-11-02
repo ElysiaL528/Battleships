@@ -13,7 +13,7 @@
     </body>
 </html>
 <script>
-    
+    //The lobby should be constantly updating so if a room is created while the user is already in the lobby, it updates the list
     function getRooms()
     {
         callAPI("http://localhost:63055/api/Room/GetRooms", roomList)

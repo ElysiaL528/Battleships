@@ -15,7 +15,6 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
     public class GameController : ApiController
     {
-        //Have all functions declare the connection in using statements (also change in Room Controller)
         #region connectionstring
         static readonly string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24 ";
         #endregion
@@ -81,22 +80,26 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public string ShotIsHit([FromBody]Shot shot)
         {
-            SqlConnection connection = new SqlConnection(connectionstring);
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_FireShot";
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_FireShot";
 
-            command.Parameters.Add(new SqlParameter("UserID", shot.UserID));
-            command.Parameters.Add(new SqlParameter("RoomID", shot.RoomID));
-            command.Parameters.Add(new SqlParameter("ShotX", shot.X));
-            command.Parameters.Add(new SqlParameter("ShotY", shot.Y));
+                    command.Parameters.Add(new SqlParameter("UserID", shot.UserID));
+                    command.Parameters.Add(new SqlParameter("RoomID", shot.RoomID));
+                    command.Parameters.Add(new SqlParameter("ShotX", shot.X));
+                    command.Parameters.Add(new SqlParameter("ShotY", shot.Y));
 
-            connection.Open();
-            var result = command.ExecuteScalar().ToString();
-            connection.Close();
+                    connection.Open();
+                    var result = command.ExecuteScalar().ToString();
+                    connection.Close();
 
-            return result;
+                    return result;
+                }
+            }
         }
 
         [HttpPost]
@@ -105,35 +108,37 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public List<Ship> getShips([FromBody]Room room)
         {
-            SqlConnection connection = new SqlConnection(connectionstring);
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_getShips";
-
-            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
-            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
-
-            var table = new DataTable();
-            var adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
-
             var shipsList = new List<Ship>();
-            foreach (DataRow playerShip in table.Rows)
+            using (SqlConnection connection = new SqlConnection(connectionstring))
             {
-                int shipX = Convert.ToInt32(playerShip["X"]);
-                int shipY = Convert.ToInt32(playerShip["Y"]);
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_getShips";
 
-                int shipOrientationID = Convert.ToInt32(playerShip["ShipOrientationID"]);
-                int shipTypeID = Convert.ToInt32(playerShip["ShipTypeID"]);
+                    command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+                    command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
 
-                int hitCount = Convert.ToInt32(playerShip["HitCount"]);
+                    var table = new DataTable();
+                    var adapter = new SqlDataAdapter(command);
+                    adapter.Fill(table);
 
-                Ship ship = new Ship(room.PlayerID, room.RoomID, shipX, shipY, shipTypeID, shipOrientationID);
-                shipsList.Add(ship);
+                    foreach (DataRow playerShip in table.Rows)
+                    {
+                        int shipX = Convert.ToInt32(playerShip["X"]);
+                        int shipY = Convert.ToInt32(playerShip["Y"]);
+
+                        int shipOrientationID = Convert.ToInt32(playerShip["ShipOrientationID"]);
+                        int shipTypeID = Convert.ToInt32(playerShip["ShipTypeID"]);
+
+                        int hitCount = Convert.ToInt32(playerShip["HitCount"]);
+
+                        Ship ship = new Ship(room.PlayerID, room.RoomID, shipX, shipY, shipTypeID, shipOrientationID);
+                        shipsList.Add(ship);
+                    }
+                }
             }
-
-
             return shipsList;
         }
 
@@ -147,40 +152,43 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public List<int> checkForShots([FromBody]Room room)
         {
-            SqlConnection connection = new SqlConnection(connectionstring);
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_CheckForNewShots";
-
-            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
-            command.Parameters.Add(new SqlParameter("LastShotID", room.LastShotID));
-
-            connection.Open();
-            var shot = command.ExecuteScalar();
-            connection.Close();
-
-            var table = new DataTable();
-            var adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
-
-            int x = Convert.ToInt32(table.Rows[0]["X"]);
-            int y = Convert.ToInt32(table.Rows[0]["Y"]);
-            /*
-            bool newShots = true;
-
-            if (table.Rows.Count == 0)
-            {
-                newShots = false;
-            }
-
-            return newShots;
-            */
-
             var shotCoordinates = new List<int>();
-            shotCoordinates.Add(x);
-            shotCoordinates.Add(y);
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_CheckForNewShots";
 
+                    command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+                    command.Parameters.Add(new SqlParameter("LastShotID", room.LastShotID));
+
+                    connection.Open();
+                    var shot = command.ExecuteScalar();
+                    connection.Close();
+
+                    var table = new DataTable();
+                    var adapter = new SqlDataAdapter(command);
+                    adapter.Fill(table);
+
+                    int x = Convert.ToInt32(table.Rows[0]["X"]);
+                    int y = Convert.ToInt32(table.Rows[0]["Y"]);
+                    /*
+                    bool newShots = true;
+
+                    if (table.Rows.Count == 0)
+                    {
+                        newShots = false;
+                    }
+
+                    return newShots;
+                    */
+
+                    shotCoordinates.Add(x);
+                    shotCoordinates.Add(y);
+                }
+            }
             return shotCoordinates;
         }
 
@@ -189,18 +197,23 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public string checkPlayersReady([FromBody]Room room)
         {
-            SqlConnection connection = new SqlConnection(connectionstring);
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_CheckUsersReady";
+            string result;
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_CheckUsersReady";
 
-            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
-            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+                    command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+                    command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
 
-            connection.Open();
-            string result = command.ExecuteScalar().ToString();
-            connection.Close();
+                    connection.Open();
+                    result = command.ExecuteScalar().ToString();
+                    connection.Close();
+                }
+            }
             return result;
 
         }
@@ -210,22 +223,26 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public DataTable setPlayerReady([FromBody]Room room)
         {
-            SqlConnection connection = new SqlConnection(connectionstring);
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_SetUserReady";
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_SetUserReady";
 
-            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
-            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+                    command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+                    command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
 
-            connection.Open();
-            var table = new DataTable();
-            var adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
-            connection.Close();
+                    connection.Open();
+                    var table = new DataTable();
+                    var adapter = new SqlDataAdapter(command);
+                    adapter.Fill(table);
+                    connection.Close();
 
-            return table;
+                    return table;
+                }
+            }
         }
 
     }

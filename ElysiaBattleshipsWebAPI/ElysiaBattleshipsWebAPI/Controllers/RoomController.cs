@@ -18,8 +18,6 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         #region connectionstring
         static string connectionstring = "Server = GMRSKYBASE; Database = ElysiaLopezBattleships2017; User id = ElysiaLopez; Password = qdc28p24";
         #endregion
-        static SqlConnection connection = new SqlConnection(connectionstring);
-        static SqlCommand command = new SqlCommand();
 
         /// <summary>
         /// Creates a new user
@@ -31,18 +29,24 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [Route("Register")]
         public int CreateUser([FromBody]User user)
         {
-            command.Parameters.Clear();
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_CreateUser";
-            command.Parameters.Add(new SqlParameter("Username", user.Username));
-            command.Parameters.Add(new SqlParameter("IsTestData", user.IsTestData));
-            command.Connection = connection;
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Parameters.Clear();
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_CreateUser";
+                    command.Parameters.Add(new SqlParameter("Username", user.Username));
+                    command.Parameters.Add(new SqlParameter("IsTestData", user.IsTestData));
+                    command.Connection = connection;
 
-            connection.Open();
-            var result = Convert.ToInt32(command.ExecuteScalar());
-            connection.Close();
+                    connection.Open();
+                    var result = Convert.ToInt32(command.ExecuteScalar());
+                    connection.Close();
 
-            return result;
+                    return result;
+                }
+            }
         }
 
         /// <summary>
@@ -55,18 +59,24 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [Route("CreateRoom")]
         public int CreateRoom([FromBody]Room room)
         {
-            command.Parameters.Clear();
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_CreateRoom";
-            command.Parameters.Add(new SqlParameter("RoomName", room.RoomName));
-            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
-            command.Connection = connection;
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Parameters.Clear();
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_CreateRoom";
+                    command.Parameters.Add(new SqlParameter("RoomName", room.RoomName));
+                    command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+                    command.Connection = connection;
 
-            connection.Open();
-            var result = Convert.ToInt32(command.ExecuteScalar());
-            connection.Close();
+                    connection.Open();
+                    var result = Convert.ToInt32(command.ExecuteScalar());
+                    connection.Close();
 
-            return result;
+                    return result;
+                }
+            }
         }
 
         /// <summary>
@@ -78,29 +88,35 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [Route("GetRooms")]
         public List<Room> GetRooms()
         {
-            command.Parameters.Clear();
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_GetRooms";
-            command.Connection = connection;
-            var table = new DataTable();
-            var adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
-
-            var roomsList = new List<Room>();
-
-            foreach(DataRow room in table.Rows)
+            using (SqlConnection connection = new SqlConnection(connectionstring))
             {
-                string roomName = room["RoomName"].ToString();
-                string hostName = room["Username"].ToString();
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Parameters.Clear();
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_GetRooms";
+                    command.Connection = connection;
+                    var table = new DataTable();
+                    var adapter = new SqlDataAdapter(command);
+                    adapter.Fill(table);
 
-                int hostID = Convert.ToInt32(room["HostPlayerID"]);
-                int roomID = Convert.ToInt32(room["RoomID"]);
+                    var roomsList = new List<Room>();
 
-                Room newRoom = new Room(roomID, roomName, hostName, hostID);
-                roomsList.Add(newRoom);
+                    foreach (DataRow room in table.Rows)
+                    {
+                        string roomName = room["RoomName"].ToString();
+                        string hostName = room["Username"].ToString();
+
+                        int hostID = Convert.ToInt32(room["HostPlayerID"]);
+                        int roomID = Convert.ToInt32(room["RoomID"]);
+
+                        Room newRoom = new Room(roomID, roomName, hostName, hostID);
+                        roomsList.Add(newRoom);
+                    }
+
+                    return roomsList;
+                }
             }
-
-            return roomsList;
         }
 
         /// <summary>
@@ -113,15 +129,22 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [Route("JoinRoom")]
         public string JoinRoom([FromBody]Room room)
         {
-            command.Parameters.Clear();
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
-            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
-            command.CommandText = "usp_JoinRoom";   
-            command.Connection = connection;
-            connection.Open();
-            var errorMessage = command.ExecuteScalar().ToString();
-            connection.Close();
+            string errorMessage;
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Parameters.Clear();
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
+                    command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+                    command.CommandText = "usp_JoinRoom";
+                    command.Connection = connection;
+                    connection.Open();
+                    errorMessage = command.ExecuteScalar().ToString();
+                    connection.Close();
+                }
+            }
             return errorMessage;
         }
         /// <summary>
@@ -133,34 +156,46 @@ namespace ElysiaBattleshipsWebAPI.Controllers
         [Route("GetRoomInfo")]
         public DataTable GetRoomInfo([FromBody]Room room)
         {
-            command.Parameters.Clear();
-            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_GetRoomInfo";
-            command.Connection = connection;
-            connection.Open();
-            var table = new DataTable();
-            var adapter = new SqlDataAdapter(command);
-            adapter.Fill(table);
-            connection.Close();
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Parameters.Clear();
+                    command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_GetRoomInfo";
+                    command.Connection = connection;
+                    connection.Open();
+                    var table = new DataTable();
+                    var adapter = new SqlDataAdapter(command);
+                    adapter.Fill(table);
+                    connection.Close();
 
-            return table;
+                    return table;
+                }
+            }
         }
 
         [HttpPost]
         [Route("CheckForOpponent")]
         public bool CheckForOpponent([FromBody]Room room)
         {
-            command.Parameters.Clear();
-            command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "usp_CheckForOpponent";
-            command.Connection = connection;
-            connection.Open();
-            var result = command.ExecuteScalar();
-            connection.Close();
-            bool opponentJoined = result.ToString() != "";
-            return opponentJoined;
+            using (SqlConnection connection = new SqlConnection(connectionstring))
+            {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Parameters.Clear();
+                    command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "usp_CheckForOpponent";
+                    command.Connection = connection;
+                    connection.Open();
+                    var result = command.ExecuteScalar();
+                    connection.Close();
+                    bool opponentJoined = result.ToString() != "";
+                    return opponentJoined;
+                }
+            }
         }
     }
 }

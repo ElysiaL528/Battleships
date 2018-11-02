@@ -92,31 +92,31 @@ function drawGrids()
         switch(i)
         {
             case 1:
-                shipsCell.id = '1';
+                shipsCell.id = 1;
                 shipsCell.dataset.name = 'AircraftCarrier';
                 shipsCell.dataset.shipLength = 5;
                 break;
 
             case 2:
-                shipsCell.id = '2';
+                shipsCell.id = 2;
                 shipsCell.dataset.name = 'Battleship';
                 shipsCell.dataset.shipLength = 4;
                 break;
 
             case 3:
-                shipsCell.id = '3';
+                shipsCell.id = 3;
                 shipsCell.dataset.name = 'Submarine';
                 shipsCell.dataset.shipLength = 3;
                 break;
             
             case 4:
-                shipsCell.id = '4';
+                shipsCell.id = 4;
                 shipsCell.dataset.name = 'Cruiser';
                 shipsCell.dataset.shipLength = 3;
                 break;
             
             case 5:
-                shipsCell.id = '5';
+                shipsCell.id = 5;
                 shipsCell.dataset.name = 'Destroyer';
                 shipsCell.dataset.shipLength = 2;
                 break;
@@ -154,7 +154,7 @@ var startCellX = 0;
 var startCellY = 0;
 
 
-function PlaceShip(cell, shipOrientationID, alertIfInvalid) //cell, integer, bool
+function PlaceShip(cell, shipOrientationID, alertIfInvalid)
 {
     var info = {
             RoomID: localStorage.getItem('RoomID'),
@@ -391,8 +391,9 @@ function selectedShipsCell(cellID)
 function RandomizeShips()
 {
     //Delete any pre-existing ships
-    //ac = aircraft carrier, b = battleship, s = submarine, c = cruiser, d = destroyer
+    
     let placedShip = false;
+    /*
     var interval;
 
     for(let i = 1; i < 5; i++)
@@ -412,9 +413,30 @@ function RandomizeShips()
             if(placedShipsIDs.get(i) == 1) //i is the ship type ID
             {
                 placedShip = true;
+                window.clearInterval();
             }
-        }, 5000);
-    }
+        }, 1000);
+    }*/
+
+    interval = window.setInterval(() => 
+        {
+            startCellX = Math.floor(Math.random() * 10 + 1);
+            startCellY = Math.floor(Math.random() * 10 + 1);
+            let orientationID = Math.floor(Math.random() * 4 + 1);
+
+            let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
+
+            selectedShipID = 1;
+
+            PlaceShip(cell, orientationID, false);   
+
+            if(placedShipsIDs.get(1) == 1) //i is the ship type ID
+            {
+                placedShip = true;
+                window.clearInterval();
+            }
+        }, 1000);
+
 }
 
 var checkReadyInterval;
