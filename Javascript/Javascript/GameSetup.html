@@ -152,18 +152,37 @@ function drawGrids()
 var availableEndCells = new Map();
 var startCellX = 0;
 var startCellY = 0;
+var orientationID = 0;
 
 
-function PlaceShip(cell, shipOrientationID, alertIfInvalid)
+function PlaceShip(cell, shipOrientationID, shipTypeID, alertIfInvalid)
 {
     var info = {
             RoomID: localStorage.getItem('RoomID'),
             UserID: localStorage.getItem('UserID'),
-            ShipTypeID: selectedShipID,
+            ShipTypeID: shipTypeID,
             StartX: startCellX,
             StartY: startCellY,
             ShipOrientationID: shipOrientationID
         };
+        switch(shipTypeID)
+        {
+            case "1":
+                selectedShipLength = 5;
+                break;
+            case "2":
+                selectedShipLength = 4;
+                break;
+            case "3":
+                selectedShipLength = 3; 
+                break;
+            case "4":
+                selectedShipLength = 3;
+                break;
+            case "5":
+                selectedShipLength = 2;
+                break;
+        }
         callAPI("http://localhost:63055/api/Game/PlaceShip", (message) => {
             if(message == "Placed ship")
             {
@@ -171,7 +190,7 @@ function PlaceShip(cell, shipOrientationID, alertIfInvalid)
                 {
                     let value = shipOrientationID == 1 ? cell.dataset.y : startCellY;
                     let changeInI = shipOrientationID == 1 ? 1 : -1;
-                    for(let i = asInt(value); asInt(i) < asInt(value) + asInt(selectedShipLength); i++)
+                    for(let i = asInt(value); asInt(i) < (asInt(value) + asInt(selectedShipLength)); i++)
                     {
                         let tempCell = cellsMap.get(`x${cell.dataset.x}y${i}`);
                         tempCell.style.backgroundColor = 'DarkBlue';
@@ -184,7 +203,7 @@ function PlaceShip(cell, shipOrientationID, alertIfInvalid)
                 {
                     let value = shipOrientationID == 3 ? cell.dataset.x : startCellX;
                     let changeInI = shipOrientationID == 3 ? 1 : -1;
-                    for(let i = asInt(value); asInt(i) < asInt(value) + asInt(selectedShipLength); i++)
+                    for(let i = asInt(value); asInt(i) < (asInt(value) + asInt(selectedShipLength)); i++)
                     {
                         let tempCell = cellsMap.get(`x${i}y${cell.dataset.y}`);
                         tempCell.style.backgroundColor = 'DarkBlue';
@@ -222,6 +241,17 @@ function PlaceShip(cell, shipOrientationID, alertIfInvalid)
             {
                 alert(message);
             }
+            else
+            {
+                //Randomizes placement again
+                startCellX = Math.floor(Math.random() * 10 + 1);
+                startCellY = Math.floor(Math.random() * 10 + 1);
+                orientationID = Math.floor(Math.random() * 4 + 1);
+
+                let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
+
+                PlaceShip(cell, orientationID, false);
+            }
         }, info);
 }
 
@@ -251,7 +281,7 @@ function selectedCell(cellID)
         {
             shipOrientationID = 4;
         }
-        PlaceShip(cell, shipOrientationID, true);
+        PlaceShip(cell, shipOrientationID, selectedShipID, true);
     }
     else
     {        
@@ -393,9 +423,9 @@ function RandomizeShips()
     //Delete any pre-existing ships
     
     let placedShip = false;
-    /*
+    
     var interval;
-
+    /*
     for(let i = 1; i < 5; i++)
     {
         interval = window.setInterval(() => 
@@ -418,25 +448,17 @@ function RandomizeShips()
         }, 1000);
     }*/
 
-    interval = window.setInterval(() => 
-        {
-            startCellX = Math.floor(Math.random() * 10 + 1);
-            startCellY = Math.floor(Math.random() * 10 + 1);
-            let orientationID = Math.floor(Math.random() * 4 + 1);
+        startCellX = Math.floor(Math.random() * 10 + 1);
+        startCellY = Math.floor(Math.random() * 10 + 1);
+        orientationID = Math.floor(Math.random() * 4 + 1);
 
-            let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
+        let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
 
-            selectedShipID = 1;
+        selectedShipID = "1";
+        PlaceShip(cell, orientationID, selectedShipID, false);
 
-            PlaceShip(cell, orientationID, false);   
-
-            if(placedShipsIDs.get(1) == 1) //i is the ship type ID
-            {
-                placedShip = true;
-                window.clearInterval();
-            }
-        }, 1000);
-
+        //debug in SQL why a ship can be placed where the starting coord: (1, 1) and orientation is up
+        //finish randomizing placements for all ships
 }
 
 var checkReadyInterval;
