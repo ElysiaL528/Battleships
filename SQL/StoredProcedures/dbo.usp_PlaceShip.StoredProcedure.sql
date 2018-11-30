@@ -1,10 +1,11 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 11/9/2018 2:44:39 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 11/30/2018 1:41:34 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 
@@ -112,6 +113,7 @@ BEGIN
 		SELECT @ErrorMessage
 		END
 	END
+
 
 
 
