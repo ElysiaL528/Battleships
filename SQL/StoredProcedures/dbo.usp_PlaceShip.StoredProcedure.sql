@@ -1,10 +1,11 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 11/30/2018 1:41:34 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 11/30/2018 2:17:43 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 
@@ -37,15 +38,10 @@ DECLARE	@changeY	int
 SELECT	@shipLength  = s.ShipLength,
 		@changeX	=	so.OrientationValueX,
 		@changeY	=	so.OrientationValueY
-FROM	UserShips	us
-JOIN	Ships	s
-ON		us.ShipTypeID	=	s.ShipID
+FROM	Ships s
 JOIN	ShipOrientations	so
-ON		us.ShipOrientationID	=	so.ShipOrientationID
+ON		@ShipOrientationID	=	so.ShipOrientationID
 WHERE s.ShipID = @ShipTypeID
-AND so.ShipOrientationID = @ShipOrientationID
-AND us.UserID = @UserID
-AND us.RoomID = @RoomID
 
 
 SET @EndX	=	@X + (@shipLength - 1) * @changeX
@@ -113,6 +109,7 @@ BEGIN
 		SELECT @ErrorMessage
 		END
 	END
+
 
 
 
