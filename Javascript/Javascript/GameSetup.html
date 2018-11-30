@@ -16,7 +16,10 @@
 </html>
 <script src ="Cell.js"></script>
 <script>
+//Fix randomization function
 //Test checkReady function
+//Fix problem of overlapping ships
+//Delete available end cells after a ship is placed 
 //Create randomize ships function (for quicker debugging)
 //Figure out why the page keeps crashing after both players are done placing
 var cellsMap = new Map();
@@ -423,41 +426,20 @@ function RandomizeShips()
     //Delete any pre-existing ships
     
     let placedShip = false;
-    
-    var interval;
-    /*
-    for(let i = 1; i < 5; i++)
-    {
-        interval = window.setInterval(() => 
-        {
-            startCellX = Math.floor(Math.random() * 10 + 1);
-            startCellY = Math.floor(Math.random() * 10 + 1);
-            let orientationID = Math.floor(Math.random() * 4 + 1);
 
-            let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
+    startCellX = Math.floor(Math.random() * 10 + 1);
+    startCellY = Math.floor(Math.random() * 10 + 1);
+    orientationID = Math.floor(Math.random() * 4 + 1);
 
-            selectedShipID = i;
+    let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
 
-            PlaceShip(cell, orientationID, false);   
+    selectedShipID = "1";
+    PlaceShip(cell, orientationID, selectedShipID, false);
 
-            if(placedShipsIDs.get(i) == 1) //i is the ship type ID
-            {
-                placedShip = true;
-                window.clearInterval();
-            }
-        }, 1000);
-    }*/
+    selectedShipID = "2";
+    PlaceShip(cell, orientationID, selectedShipID, false);
 
-        startCellX = Math.floor(Math.random() * 10 + 1);
-        startCellY = Math.floor(Math.random() * 10 + 1);
-        orientationID = Math.floor(Math.random() * 4 + 1);
-
-        let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
-
-        selectedShipID = "1";
-        PlaceShip(cell, orientationID, selectedShipID, false);
-
-        //finish randomizing placements for all ships
+    //finish randomizing placements for all ships
 }
 
 var checkReadyInterval;
