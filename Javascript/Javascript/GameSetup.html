@@ -158,7 +158,7 @@ var startCellY = 0;
 var orientationID = 0;
 
 
-function PlaceShip(cell, shipOrientationID, shipTypeID, alertIfInvalid)
+function PlaceShip(cell, shipOrientationID, shipTypeID, isManualPlacement)
 {
     var info = {
             RoomID: localStorage.getItem('RoomID'),
@@ -191,7 +191,7 @@ function PlaceShip(cell, shipOrientationID, shipTypeID, alertIfInvalid)
             {
                 if(shipOrientationID == 1 || shipOrientationID == 2) //Up or down
                 {
-                    let value = shipOrientationID == 1 ? cell.dataset.y : startCellY;
+                    let value = shipOrientationID == 1 ? startCellY-selectedShipLength+1 : startCellY;
                     let changeInI = shipOrientationID == 1 ? 1 : -1;
                     for(let i = asInt(value); asInt(i) < (asInt(value) + asInt(selectedShipLength)); i++)
                     {
@@ -204,7 +204,7 @@ function PlaceShip(cell, shipOrientationID, shipTypeID, alertIfInvalid)
                 }
                 else if(shipOrientationID == 3 || shipOrientationID == 4)
                 {
-                    let value = shipOrientationID == 3 ? cell.dataset.x : startCellX;
+                    let value = shipOrientationID == 3 ? startCellX-selectedShipLength+1 : startCellX;
                     let changeInI = shipOrientationID == 3 ? 1 : -1;
                     for(let i = asInt(value); asInt(i) < (asInt(value) + asInt(selectedShipLength)); i++)
                     {
@@ -239,8 +239,9 @@ function PlaceShip(cell, shipOrientationID, shipTypeID, alertIfInvalid)
                 }
                 placedShipsIDs.set(selectedShipID, 1); //Records that we placed this type of ship (value doesn't matter)
                 playerShipsMap.get(selectedShipID).style.backgroundColor = 'LightBlue';
+                playerShipsMap.get(selectedShipID).dataset.isSelected = 'true';
             }
-            else if(alertIfInvalid == true)
+            else if(isManualPlacement == true)
             {
                 alert(message);
             }
@@ -253,12 +254,13 @@ function PlaceShip(cell, shipOrientationID, shipTypeID, alertIfInvalid)
 
                 let cell = cellsMap.get(`x${startCellX}y${startCellY}`);
 
-                PlaceShip(cell, orientationID, false);
+                PlaceShip(cell, orientationID, shipTypeID, false);
             }
         }, info);
 }
 
-
+//(10, 10) - Left - Didn't place
+//(9, 5) - Left - Didn't place
 function selectedCell(cellID)
 {
     //Displays all the available end cells
@@ -436,10 +438,9 @@ function RandomizeShips()
     selectedShipID = "1";
     PlaceShip(cell, orientationID, selectedShipID, false);
 
-    selectedShipID = "2";
-    PlaceShip(cell, orientationID, selectedShipID, false);
-
-    //finish randomizing placements for all ships
+    // selectedShipID = "2";
+    // PlaceShip(cell, orientationID, selectedShipID, false);
+    //DEBUG
 }
 
 var checkReadyInterval;
