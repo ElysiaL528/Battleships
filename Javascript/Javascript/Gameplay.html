@@ -18,27 +18,37 @@
     var sunkShipTypeID;
     var selectedCells = new Map();
     var waitingText = document.getElementById("waitingText");
-    function WaitUntilOpponentReady()
+    async function WaitUntilOpponentReady()
     {   
         document.body.appendChild(waitingText);
-        var info = {
+        let info = {
                 PlayerID: localStorage.getItem('UserID'),
                 RoomID: localStorage.getItem('RoomID')
             };
 
-            callAPI("http://localhost:63055/api/Game/SetReady", () => {
-                //Wait for other player ready
-                checkReadyInterval = window.setInterval(() => {
-                    callAPI("http://localhost:63055/api/Game/CheckReady", (opponentReadyStatus) => {
-                        if(opponentReadyStatus == "True")
-                        {
-                            window.clearInterval(checkReadyInterval);
-                            waitingText.style.display = "none";
-                            Gameplay();
-                        }
-                    }, info)
-                    }, 5000);
-                }, info);
+            // callAPI("http://localhost:63055/api/Game/SetReady", () => {
+            //     //Wait for other player ready
+            //     checkReadyInterval = window.setInterval(() => {
+            //         callAPI("http://localhost:63055/api/Game/CheckReady", (opponentReadyStatus) => {
+            //             if(opponentReadyStatus == "True")
+            //             {
+            //                 window.clearInterval(checkReadyInterval);
+            //                 waitingText.style.display = "none";
+            //                 Gameplay();
+            //             }
+            //         }, info)
+            //         }, 5000);
+            //     }, info);
+
+        let opponentJoined = "false";
+        
+        while(opponentJoined == "false")
+        {
+            opponentJoined = await callAPI("http://localhost:63055/api/Game/SetReady", info);
+        }
+        //window.clearInterval(checkReadyInterval);
+        waitingText.style.display = "none";
+        Gameplay();
     }
     function DrawGrids()
     {
@@ -109,37 +119,36 @@
     }
 
     var LastShotID;
-    function Gameplay()
+    async function Gameplay()
     {
         DrawGrids();
-        if(localStorage.getItem("IsHost") == "true")
-        {
-            isPlayerTurn = true;
-        }
-        else
-        {
-            isPlayerTurn = false;
-        }
-        LastShotID = -1;
-        while(!gameOver)
-        {
-            if(!isPlayerTurn)
-            {
-                let lastShotInfo = 
-                {
-                    RoomID: localStorage.getItem("RoomID"),
-                    LastShotID: LastShotID
-                };
-                //Record the coordinates of the shot and set it to the player's turn
-                callAPI("http://localhost:63055/api/Game/NewShots", (shotCoordinates) => {
-                    if(shotCoordinates != null)
-                    {
+        // if(localStorage.getItem("IsHost") == "true")
+        // {
+        //     isPlayerTurn = true;
+        // }
+        // else
+        // {
+        //     isPlayerTurn = false;
+        // }
+        // LastShotID = -1;
+        // while(!gameOver)
+        // {
+        //     if(!isPlayerTurn)
+        //     {
+        //         let lastShotInfo = 
+        //         {
+        //             RoomID: localStorage.getItem("RoomID"),
+        //             LastShotID: LastShotID
+        //         };
+        //         //Record the coordinates of the shot and set it to the player's turn
+        //         let shotCoordinates = await callAPI("http://localhost:63055/api/Game/NewShots", lastShotInfo);
 
-                    }
+        //         if(shotCoordinates != null)
+        //         {
 
-                }, lastShotInfo);
-            }
-        }
+        //         }
+        //     }
+        // }
     }
 
     function asInt(value)
@@ -200,20 +209,27 @@
         
     }
     
-    function callAPI(url, callback, body)
+    function callAPI(url, body)
     {
-        var xhr = new XMLHttpRequest();
-        xhr.open(body === undefined ? 'GET' : 'POST', url, true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.onload = () => callback(JSON.parse(xhr.responseText));
+        return new Promise((resolve, reject) => {
+            var xhr = new XMLHttpRequest();
+            xhr.open(body === undefined ? 'GET' : 'POST', url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = () => {
+                resolve(JSON.parse(xhr.responseText));
+            };
 
-        if(body === undefined)
-        {
-            xhr.send();
-        }
-        else
-        {
-            xhr.send(JSON.stringify(body));
-        }
+            xhr.onerror = reject;
+            xhr.onabort = reject;
+
+            if(body === undefined)
+            {
+                xhr.send();
+            }
+            else
+            {
+                xhr.send(JSON.stringify(body));
+            }
+        });
     }
 </script>
