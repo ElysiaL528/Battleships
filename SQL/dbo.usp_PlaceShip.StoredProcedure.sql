@@ -1,10 +1,11 @@
 USE [ElysiaLopezBattleships2017]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 12/7/2018 2:47:31 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_PlaceShip]    Script Date: 12/21/2018 2:45:16 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 
@@ -85,13 +86,14 @@ BEGIN
 		if NOT EXISTS(SELECT ShipID FROM UserShips WHERE UserID = @UserID AND RoomID = @RoomID AND ShipTypeID = @ShipTypeID)
 		BEGIN
 
-			DECLARE	@StartCoordIsOverlapping	int =	(SELECT TOP 1 ShipID
-												FROM	UserShips WHERE (dbo.fn_intersects(@UserID, @RoomID, ShipID, @X, @Y))= 1 AND RoomID = @RoomID)
+			--DECLARE	@StartCoordIsOverlapping	int =	(SELECT TOP 1 ShipID
+			--									FROM	UserShips WHERE (dbo.fn_intersects(@UserID, @RoomID, ShipID, @X, @Y))= 1 AND RoomID = @RoomID)
 
-			DECLARE	@EndCoordIsOverlapping	int =	(SELECT TOP 1 ShipID
-												FROM	UserShips WHERE (dbo.fn_intersects(@UserID, @RoomID, ShipID, @EndX, @EndY)) = 1 AND RoomID = @RoomID)
+			--DECLARE	@EndCoordIsOverlapping	int =	(SELECT TOP 1 ShipID
+			--									FROM	UserShips WHERE (dbo.fn_intersects(@UserID, @RoomID, ShipID, @EndX, @EndY)) = 1 AND RoomID = @RoomID)
+			DECLARE @IsOverlappingShip int = (SELECT TOP 1 ShipID FROM UserShips WHERE dbo.fn_CheckOverlap(@UserID, @RoomID, ShipID, @ShipTypeID, @X, @Y, @OrientationID) = 1 AND RoomID = @RoomID)
 
-			IF(@StartCoordIsOverlapping IS NULL AND @EndCoordIsOverlapping IS NULL)
+			IF(@IsOverlappingShip IS NULL)
 				BEGIN
 					INSERT INTO UserShips
 					VALUES (@UserID, @RoomID, @ShipTypeID, @X, @Y, @OrientationID, 0, 0, @isRoomTestData)
@@ -112,6 +114,7 @@ BEGIN
 		SELECT @ErrorMessage
 		END
 	END
+
 
 
 
