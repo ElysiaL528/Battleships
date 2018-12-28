@@ -52,14 +52,14 @@
     }
     function DrawGrids()
     {
+        let gridCellSize = 50;
+
         //Player attacks 
         let playerShotsBoard = document.createElement('table');
         playerShotsBoard.id = 'playerShotsBoard';
         playerShotsBoard.style.outline = '1px solid Black';
 
         document.body.appendChild(playerShotsBoard);
-
-        let gridCellSize = 50;
 
         for(let y = 1; y <= 10; y++)
         {
@@ -95,35 +95,112 @@
 
         //Opponent's attacks
 
-        let opponentAttacksBoard = document.createElement("table");
-        opponentAttacksBoard.id = "opponentAttacksBoard";
-        opponentAttacksBoard.style.outline = "1px solid Black";
+        let opponentAttacksBoard = document.createElement('table');
+        opponentAttacksBoard.id = 'opponentAttacksBoard';
+        opponentAttacksBoard.style.outline = '1px solid Black';
+
+        opponentAttacksBoard.style.position = 'relative';
+        opponentAttacksBoard.style.left = '600px';
+        opponentAttacksBoard.style.position = 'absolute'; 
+        opponentAttacksBoard.style.top = '8px';
+
+        document.body.appendChild(opponentAttacksBoard);
 
         for(let y = 1; y <= 10; y++)
         {
-            let row = document.createElement("tr");
+            let row = document.createElement('tr');
             opponentAttacksBoard.appendChild(row);
             for(let x = 1; x <= 10; x++)
             {
-                let cell = document.createElement("td");
+                let cell = document.createElement('td');
                 cell.id = `opponentAttacksx${x}y${y}`;
                 cell.style.width = `${gridCellSize}px`;
                 cell.style.height = `${gridCellSize}px`;
-                cell.style.outline = "1px solid Black";
+                cell.style.outline = '1px solid Black';
                 cell.dataset.x = x;
                 cell.dataset.y = y;
 
                 row.appendChild(cell);
             }
         }
+
+        //Status label
+
+        if(localStorage.getItem("IsHost") == "true")
+        {
+            isPlayerTurn = true;
+        }
+        else
+        {
+            isPlayerTurn = false;
+        }
+
+        let statusLabel = document.createElement("p");
+        document.body.appendChild(statusLabel);
+        statusLabel.textContent = isPlayerTurn == true ? 'Your turn' : 'Opponent\'s turn';
+        statusLabel.id = 'statusLabel';
+        statusLabel.style.position = 'absolute';
+        statusLabel.style.top = '700px';
     }
 
     var LastShotID;
     async function Gameplay()
     {
-        //DEBUG in SQL why you can place a ship at (5, 5) orientation 2 when it overlaps a ship at (4, 8) orientation 4
-
         DrawGrids();
+
+        let info = {
+            RoomID : localStorage.getItem('RoomID'),
+            PlayerID : localStorage.getItem('UserID')
+        }
+
+        let ships = await callAPI("http://localhost:63055/api/Game/GetShips", info);
+
+        let shipLength = 0;
+        for(let i = 0; i <= 4; i++)
+        {
+            switch(i+1)
+            {
+                case 1:
+                    shipLength = 5;
+                    break;
+                case 2:
+                    shipLength = 4;
+                    break;
+                case 5:
+                    shipLength = 2;
+                    break;
+                case 3:
+                    
+                case 4: 
+                    shipLength = 3;
+                    break;
+
+            }
+            shipOrientationID = ships[i].ShipOrientationID;
+            if(shipOrientationID == 1 || shipOrientationID == 2) //Up or down
+            {
+                for(let yCoord = asInt(ships[i].StartY); asInt(yCoord) < (asInt(ships[i].StartY) + asInt(shipLength)); yCoord++)
+                {
+                    let tempCell = document.getElementById(`opponentAttacksx${ships[i].StartX}y${yCoord}`);
+                    tempCell.style.backgroundColor = 'DarkBlue';
+                }
+            }
+            else if(shipOrientationID == 3 || shipOrientationID == 4)
+            {
+                for(let xCoord = asInt(ships[i].StartX); asInt(xCoord) < (asInt(ships[i].StartX) + asInt(shipLength)); xCoord++)
+                {
+                    let tempCell = document.getElementById(`opponentAttacksx${xCoord}y${ships[i].StartY}`);
+                    tempCell.style.backgroundColor = 'DarkBlue';
+                }    
+            }
+            
+        }
+
+        function asInt(value)
+        {
+            return value*1;
+        }
+
         // if(localStorage.getItem("IsHost") == "true")
         // {
         //     isPlayerTurn = true;
@@ -135,7 +212,7 @@
         // LastShotID = -1;
         // while(!gameOver)
         // {
-        //     if(!isPlayerTurn)
+        // if(!isPlayerTurn)
         //     {
         //         let lastShotInfo = 
         //         {
@@ -161,6 +238,7 @@
 
     function fireShot(cellID)
     {
+        //DEBUG why js skips over assigning the UserID and RoomID values when initializing info
         if(isPlayerTurn = true)
         {
             let cell = document.getElementById(cellID);
@@ -170,11 +248,11 @@
             let info = {
                 UserID: localStorage.getItem('UserID'),
                 RoomID: localStorage.getItem('RoomID'),
-                X: x,
-                Y: y
+                X: asInt(x),
+                Y: asInt(y)
             };
             
-            if(cell.dataset.isSelected = "false") //Ensures that the cell hasn't already been selected yet
+            if(cell.dataset.isSelected == "false") //Ensures that the cell hasn't already been selected yet
             {
                 cell.dataset.isSelected = "true";
                 callAPI("http://localhost:63055/api/Game/Shoot", (message) => 
