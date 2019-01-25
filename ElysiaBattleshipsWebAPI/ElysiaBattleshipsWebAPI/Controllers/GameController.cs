@@ -88,7 +88,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
                     command.CommandType = CommandType.StoredProcedure;
                     command.CommandText = "usp_FireShot";
 
-                    command.Parameters.Add(new SqlParameter("UserID", shot.UserID));
+                    command.Parameters.Add(new SqlParameter("ShooterID", shot.UserID));
                     command.Parameters.Add(new SqlParameter("RoomID", shot.RoomID));
                     command.Parameters.Add(new SqlParameter("ShotX", shot.X));
                     command.Parameters.Add(new SqlParameter("ShotY", shot.Y));

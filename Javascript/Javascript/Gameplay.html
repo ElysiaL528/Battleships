@@ -236,7 +236,7 @@
         return value * 1;
     }
 
-    function fireShot(cellID)
+    async function fireShot(cellID)
     {
         //DEBUG why js skips over assigning the UserID and RoomID values when initializing info
         if(isPlayerTurn = true)
@@ -255,7 +255,8 @@
             if(cell.dataset.isSelected == "false") //Ensures that the cell hasn't already been selected yet
             {
                 cell.dataset.isSelected = "true";
-                callAPI("http://localhost:63055/api/Game/Shoot", (message) => 
+                const promise = callAPI("http://localhost:63055/api/Game/Shoot", info);
+                promise.then((message) => 
                 {
                     switch(message)
                     {
@@ -279,7 +280,7 @@
                         break;
                     }
 
-                }, info);
+                });
             }
         }
         else
