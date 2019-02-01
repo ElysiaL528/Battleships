@@ -4,7 +4,7 @@
         <head>
 
         </head>
-        <body onload="WaitUntilOpponentReady();">
+        <body>
             <p id="waitingText">Waiting for opponent ready...</p>
             <div id="playerShips"></div>
             <div id="playerAttacks"></div>
@@ -13,6 +13,8 @@
 </html>
 <script>
     
+    window.onload = asInt(5);
+
     var isPlayerTurn = false;
     var gameOver = false;
     var sunkShipTypeID;
@@ -41,17 +43,31 @@
             //     }, info);
 
         let opponentJoined = "false";
-        
+        let checkForOpponent;
+/*
         while(opponentJoined == "false")
         {
-            opponentJoined = await callAPI("http://localhost:63055/api/Game/SetReady", info);
+            checkForOpponent = window.setInterval(() => {
+            const promise = await callAPI("http://localhost:63055/api/Game/SetReady", info);
+            promise.then((message) => {
+                opponentJoined = message;
+            })
+            }, 2000);
         }
+        */
         //window.clearInterval(checkReadyInterval);
         waitingText.style.display = "none";
-        Gameplay();
+        DrawShipsAndGrids();
     }
-    function DrawGrids()
+    function asInt(value)
     {
+        return value*1;
+    }
+
+    async function DrawShipsAndGrids()
+    {
+        //DRAW GRIDS
+
         let gridCellSize = 50;
 
         //Player attacks 
@@ -141,12 +157,10 @@
         statusLabel.id = 'statusLabel';
         statusLabel.style.position = 'absolute';
         statusLabel.style.top = '700px';
-    }
 
-    var LastShotID;
-    async function Gameplay()
-    {
-        DrawGrids();
+
+        //DRAW SHIPS
+
 
         let info = {
             RoomID : localStorage.getItem('RoomID'),
@@ -196,38 +210,51 @@
             
         }
 
-        function asInt(value)
+        if(localStorage.getItem("IsHost") == "true")
         {
-            return value*1;
+            isPlayerTurn = true;
         }
+        else
+        {
+            isPlayerTurn = false;
+        }
+        Gameplay();
+    }
 
-        // if(localStorage.getItem("IsHost") == "true")
-        // {
-        //     isPlayerTurn = true;
-        // }
-        // else
-        // {
-        //     isPlayerTurn = false;
-        // }
-        // LastShotID = -1;
-        // while(!gameOver)
-        // {
-        // if(!isPlayerTurn)
-        //     {
-        //         let lastShotInfo = 
-        //         {
-        //             RoomID: localStorage.getItem("RoomID"),
-        //             LastShotID: LastShotID
-        //         };
-        //         //Record the coordinates of the shot and set it to the player's turn
-        //         let shotCoordinates = await callAPI("http://localhost:63055/api/Game/NewShots", lastShotInfo);
+    var LastShotID = -1;
+    var x = -1;
+    var y = -1;
 
-        //         if(shotCoordinates != null)
-        //         {
-
-        //         }
-        //     }
-        // }
+    async function Gameplay()
+    {
+        while(!gameOver)
+        {
+            if(!isPlayerTurn)
+            {
+                let lastShotInfo = 
+                {
+                    RoomID: localStorage.getItem("RoomID"),
+                    LastShotID: LastShotID
+                };
+                //Record the coordinates of the shot and set it to the player's turn
+                let checkForShotsInterval;
+                /*
+                checkForShotsInterval = window.setInterval(() =>
+                {
+                    const promise = await callAPI("http://localhost:63055/api/Game/NewShots", lastShotInfo);
+                    promise.then((shotCoordinates) =>
+                    {
+                        if(shotCoordinates != null)
+                        {
+                            x = shotCoordinates[0];
+                            y = shotCoordinates[1];  
+                        }
+                    }
+                    )
+                }, 2000)
+                */
+            }
+        }
     }
 
     function asInt(value)
@@ -236,10 +263,11 @@
         return value * 1;
     }
 
+    var sunkShip = false; 
+    var numOfSunkOpponentShips = 0;
     async function fireShot(cellID)
     {
-        //DEBUG why js skips over assigning the UserID and RoomID values when initializing info
-        if(isPlayerTurn = true)
+        if(isPlayerTurn == true)
         {
             let cell = document.getElementById(cellID);
             let x = cell.dataset.x;
@@ -277,9 +305,14 @@
                         default:
                             cell.style.backgroundColor = 'Red';
                             sunkShipTypeID = message;
+                            numOfSunkOpponentShips++;
+                            if(numOfSunkOpponentShips == 5)
+                            {
+                                alert("You win");
+                            }
                         break;
                     }
-
+                    isPlayerTurn = false;
                 });
             }
         }
