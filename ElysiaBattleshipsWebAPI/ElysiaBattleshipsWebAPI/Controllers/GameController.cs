@@ -152,7 +152,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
         public List<int> checkForShots([FromBody]Room room)
         {
-            var shotCoordinates = new List<int>();
+            var shotInfo = new List<int>();
             using (SqlConnection connection = new SqlConnection(connectionstring))
             {
                 using (SqlCommand command = new SqlCommand())
@@ -174,6 +174,8 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
                     int x = Convert.ToInt32(table.Rows[0]["X"]);
                     int y = Convert.ToInt32(table.Rows[0]["Y"]);
+                    int lastShotID = Convert.ToInt32(table.Rows[0]["ShotID"]);
+
                     /*
                     bool newShots = true;
 
@@ -185,11 +187,12 @@ namespace ElysiaBattleshipsWebAPI.Controllers
                     return newShots;
                     */
 
-                    shotCoordinates.Add(x);
-                    shotCoordinates.Add(y);
+                    shotInfo.Add(x);
+                    shotInfo.Add(y);
+                    shotInfo.Add(lastShotID);
                 }
             }
-            return shotCoordinates;
+            return shotInfo;
         }
 
         [HttpPost]

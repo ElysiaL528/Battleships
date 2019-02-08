@@ -4,7 +4,7 @@
         <head>
 
         </head>
-        <body>
+        <body onload="WaitUntilOpponentReady();">
             <p id="waitingText">Waiting for opponent ready...</p>
             <div id="playerShips"></div>
             <div id="playerAttacks"></div>
@@ -12,8 +12,6 @@
     </head>
 </html>
 <script>
-    
-    window.onload = asInt(5);
 
     var isPlayerTurn = false;
     var gameOver = false;
@@ -28,34 +26,23 @@
                 RoomID: localStorage.getItem('RoomID')
             };
 
-            // callAPI("http://localhost:63055/api/Game/SetReady", () => {
-            //     //Wait for other player ready
-            //     checkReadyInterval = window.setInterval(() => {
-            //         callAPI("http://localhost:63055/api/Game/CheckReady", (opponentReadyStatus) => {
-            //             if(opponentReadyStatus == "True")
-            //             {
-            //                 window.clearInterval(checkReadyInterval);
-            //                 waitingText.style.display = "none";
-            //                 Gameplay();
-            //             }
-            //         }, info)
-            //         }, 5000);
-            //     }, info);
+            const promise = await callAPI("http://localhost:63055/api/Game/SetReady", info);
+            //Wait for other player ready
+            checkReadyInterval = window.setInterval(() => {
+                    const promise = callAPI("http://localhost:63055/api/Game/CheckReady", info);
+                    promise.then((opponentReadyStatus) => {
+                        if(opponentReadyStatus == "True")
+                        {
+                            window.clearInterval(checkReadyInterval);
+                            waitingText.style.display = "none";
+                            WaitUntilTurn();
+                        }
+                        })
+                    }, 2000);
 
         let opponentJoined = "false";
         let checkForOpponent;
-/*
-        while(opponentJoined == "false")
-        {
-            checkForOpponent = window.setInterval(() => {
-            const promise = await callAPI("http://localhost:63055/api/Game/SetReady", info);
-            promise.then((message) => {
-                opponentJoined = message;
-            })
-            }, 2000);
-        }
-        */
-        //window.clearInterval(checkReadyInterval);
+        
         waitingText.style.display = "none";
         DrawShipsAndGrids();
     }
@@ -218,45 +205,46 @@
         {
             isPlayerTurn = false;
         }
-        Gameplay();
+        WaitUntilTurn();
     }
 
     var LastShotID = -1;
     var x = -1;
     var y = -1;
 
-    async function Gameplay()
+    async function WaitUntilTurn()
     {
-        while(!gameOver)
+        if(!isPlayerTurn)
         {
-            if(!isPlayerTurn)
+            let lastShotInfo = 
             {
-                let lastShotInfo = 
+                RoomID: localStorage.getItem("RoomID"),
+                LastShotID: LastShotID
+            };
+            //Record the coordinates of the shot and set it to the player's turn
+            let checkForShotsInterval;
+            
+            checkForShotsInterval = window.setInterval(() =>
+            {
+                const promise = callAPI("http://localhost:63055/api/Game/NewShots", lastShotInfo);
+                promise.then((shotCoordinates) =>
                 {
-                    RoomID: localStorage.getItem("RoomID"),
-                    LastShotID: LastShotID
-                };
-                //Record the coordinates of the shot and set it to the player's turn
-                let checkForShotsInterval;
-                /*
-                checkForShotsInterval = window.setInterval(() =>
-                {
-                    const promise = await callAPI("http://localhost:63055/api/Game/NewShots", lastShotInfo);
-                    promise.then((shotCoordinates) =>
+                    if(shotCoordinates != null)
                     {
-                        if(shotCoordinates != null)
-                        {
-                            x = shotCoordinates[0];
-                            y = shotCoordinates[1];  
-                        }
-                    }
-                    )
-                }, 2000)
-                */
-            }
-        }
-    }
+                        x = shotCoordinates[0];
+                        y = shotCoordinates[1];  
+                        LastShotID = shotCoordinates[2];
 
+                        checkForShotsInterval.clearInterval();
+                        isPlayerTurn = true;
+                    }
+                }
+                )
+            }, 2000)
+            
+        }
+        
+    }
     function asInt(value)
     {
         //Casts value as integer
