@@ -202,14 +202,16 @@ namespace ElysiaBattleshipsWebAPI.Tests
             command.CommandText = $"INSERT INTO Rooms VALUES ('{randomRoomName}', {userID}, null, 1, 1, 1)";
             command.ExecuteScalar();
 
-            command.CommandText = "SELECT TOP 1 RoomID FROM Rooms ORDER BY RoomID DESC";
-            var roomID = Convert.ToInt32(command.ExecuteScalar());
+            //command.CommandText = "SELECT TOP 1 RoomID FROM Rooms ORDER BY RoomID DESC";
+            //var roomID = Convert.ToInt32(command.ExecuteScalar());
+            var roomID = 1246;
 
             int x = random.Next(1, 10);
             int y = random.Next(1, 10);
 
-            command.CommandText = "SELECT TOP 1 ShotID FROM Shots ORDER BY ShotID DESC";
-            int lastShotID = Convert.ToInt32(command.ExecuteScalar());
+            //command.CommandText = "SELECT TOP 1 ShotID FROM Shots ORDER BY ShotID DESC";
+            //int lastShotID = Convert.ToInt32(command.ExecuteScalar());
+            var lastShotID = 1;
 
             command.CommandText = $"INSERT INTO Shots VALUES ({userID}, {roomID}, {x}, {y}, 0, 1)";
             command.ExecuteScalar();
@@ -220,9 +222,11 @@ namespace ElysiaBattleshipsWebAPI.Tests
             room.LastShotID = lastShotID;
             connection.Close();
 
-            //bool newShots = gameController.checkForShots(room);
+            bool detectedNewShot = gameController.checkForShots(room).Count != 0;
+            
 
-            //Assert.AreEqual(true, newShots, "Test should have returned true, but returned false.");
+
+            Assert.AreEqual(true, detectedNewShot, "Test should have returned true, but returned false.");
 
             
 

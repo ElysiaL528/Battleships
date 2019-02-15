@@ -172,24 +172,32 @@ namespace ElysiaBattleshipsWebAPI.Controllers
                     var adapter = new SqlDataAdapter(command);
                     adapter.Fill(table);
 
-                    int x = Convert.ToInt32(table.Rows[0]["X"]);
-                    int y = Convert.ToInt32(table.Rows[0]["Y"]);
-                    int lastShotID = Convert.ToInt32(table.Rows[0]["ShotID"]);
-
-                    /*
-                    bool newShots = true;
-
-                    if (table.Rows.Count == 0)
+                    if (table.Rows.Count > 0)
                     {
-                        newShots = false;
+
+                        int x = Convert.ToInt32(table.Rows[0]["X"]);
+                        int y = Convert.ToInt32(table.Rows[0]["Y"]);
+                        int lastShotID = Convert.ToInt32(table.Rows[0]["ShotID"]);
+
+                        /*
+                        bool newShots = true;
+
+                        if (table.Rows.Count == 0)
+                        {
+                            newShots = false;
+                        }
+
+                        return newShots;
+                        */
+
+                        shotInfo.Add(x);
+                        shotInfo.Add(y);
+                        shotInfo.Add(lastShotID);
                     }
-
-                    return newShots;
-                    */
-
-                    shotInfo.Add(x);
-                    shotInfo.Add(y);
-                    shotInfo.Add(lastShotID);
+                    else
+                    {
+                        return null;
+                    }
                 }
             }
             return shotInfo;

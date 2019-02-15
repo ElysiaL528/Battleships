@@ -35,6 +35,17 @@
                         {
                             window.clearInterval(checkReadyInterval);
                             waitingText.style.display = "none";
+                            DrawShipsAndGrids();
+                            
+                            if(localStorage.getItem("IsHost") == "true")
+                            {
+                                isPlayerTurn = true;
+                            }
+                            else
+                            {
+                                isPlayerTurn = false;
+                            }
+                            
                             WaitUntilTurn();
                         }
                         })
@@ -44,7 +55,6 @@
         let checkForOpponent;
         
         waitingText.style.display = "none";
-        DrawShipsAndGrids();
     }
     function asInt(value)
     {
@@ -129,18 +139,9 @@
 
         //Status label
 
-        if(localStorage.getItem("IsHost") == "true")
-        {
-            isPlayerTurn = true;
-        }
-        else
-        {
-            isPlayerTurn = false;
-        }
-
         let statusLabel = document.createElement("p");
         document.body.appendChild(statusLabel);
-        statusLabel.textContent = isPlayerTurn == true ? 'Your turn' : 'Opponent\'s turn';
+        statusLabel.textContent = 'Opponent\'s turn';
         statusLabel.id = 'statusLabel';
         statusLabel.style.position = 'absolute';
         statusLabel.style.top = '700px';
@@ -196,16 +197,6 @@
             }
             
         }
-
-        if(localStorage.getItem("IsHost") == "true")
-        {
-            isPlayerTurn = true;
-        }
-        else
-        {
-            isPlayerTurn = false;
-        }
-        WaitUntilTurn();
     }
 
     var LastShotID = -1;
@@ -229,19 +220,24 @@
                 const promise = callAPI("http://localhost:63055/api/Game/NewShots", lastShotInfo);
                 promise.then((shotCoordinates) =>
                 {
-                    if(shotCoordinates != null)
+                    if(shotCoordinates.Count > 1)
                     {
-                        x = shotCoordinates[0];
-                        y = shotCoordinates[1];  
-                        LastShotID = shotCoordinates[2];
+                        if(shotCoordinates[2] != LastShotID)
+                        {
+                            x = shotCoordinates[0];
+                            y = shotCoordinates[1];  
+                            LastShotID = (shotCoordinates[2] + 1)*1;
 
-                        checkForShotsInterval.clearInterval();
-                        isPlayerTurn = true;
+                            let statusLabel = document.getElementById('statusLabel');
+                            statusLabel.textContent= 'Your turn';
+
+                            clearInterval(checkForShotsInterval);
+                            isPlayerTurn = true;
+                        }
                     }
                 }
                 )
-            }, 2000)
-            
+            }, 500);
         }
         
     }
@@ -301,6 +297,9 @@
                         break;
                     }
                     isPlayerTurn = false;
+                    let statusLabel = document.getElementById('statusLabel');
+                    statusLabel.textContent= 'Opponent\'s turn';
+                    WaitUntilTurn();
                 });
             }
         }
