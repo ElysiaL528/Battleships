@@ -17,6 +17,9 @@
     var gameOver = false;
     var sunkShipTypeID;
     var selectedCells = new Map();
+    var opponentHits = 0;
+    var playerHits = 0;
+    var shipCells = new Map();
     var waitingText = document.getElementById("waitingText");
     async function WaitUntilOpponentReady()
     {   
@@ -141,7 +144,14 @@
 
         let statusLabel = document.createElement("p");
         document.body.appendChild(statusLabel);
-        statusLabel.textContent = 'Opponent\'s turn';
+        if(localStorage.getItem("IsHost") == "true")
+        {
+            statusLabel.textContent = 'Your turn';
+        }
+        else
+        {
+            statusLabel.textContent = 'Opponent\'s turn';
+        }
         statusLabel.id = 'statusLabel';
         statusLabel.style.position = 'absolute';
         statusLabel.style.top = '700px';
@@ -185,6 +195,7 @@
                 {
                     let tempCell = document.getElementById(`opponentAttacksx${ships[i].StartX}y${yCoord}`);
                     tempCell.style.backgroundColor = 'DarkBlue';
+                    shipCells.set(`opponentAttacksx${ships[i].StartX}y${yCoord}`, 1);
                 }
             }
             else if(shipOrientationID == 3 || shipOrientationID == 4)
@@ -193,6 +204,7 @@
                 {
                     let tempCell = document.getElementById(`opponentAttacksx${xCoord}y${ships[i].StartY}`);
                     tempCell.style.backgroundColor = 'DarkBlue';
+                    shipCells.set(`opponentAttacksx${xCoord}y${ships[i].StartY}`, 1);
                 }    
             }
             
@@ -210,6 +222,7 @@
             let lastShotInfo = 
             {
                 RoomID: localStorage.getItem("RoomID"),
+                PlayerID: localStorage.getItem("UserID"),
                 LastShotID: LastShotID
             };
             //Record the coordinates of the shot and set it to the player's turn
@@ -220,7 +233,7 @@
                 const promise = callAPI("http://localhost:63055/api/Game/NewShots", lastShotInfo);
                 promise.then((shotCoordinates) =>
                 {
-                    if(shotCoordinates.Count > 1)
+                    if(shotCoordinates != null)
                     {
                         if(shotCoordinates[2] != LastShotID)
                         {
@@ -228,13 +241,27 @@
                             y = shotCoordinates[1];  
                             LastShotID = (shotCoordinates[2] + 1)*1;
 
-                            let statusLabel = document.getElementById('statusLabel');
-                            statusLabel.textContent= 'Your turn';
+                            let cell = document.getElementById(`opponentAttacksx${x}y${y}`);
+                            if(shipCells.get(`opponentAttacksx${x}y${y}`) == 1)
+                            {
+                                cell.style.backgroundColor = 'Red';
+                                opponentHits++;
+                            }
+                            else if(opponentHits*1 == 17)
+                            {
+                                alert("You lose!");
+                            }
+                            else //Miss 
+                            {
+                                let statusLabel = document.getElementById('statusLabel');
+                                statusLabel.textContent= 'Your turn';
 
-                            clearInterval(checkForShotsInterval);
-                            isPlayerTurn = true;
+                                clearInterval(checkForShotsInterval);
+                                isPlayerTurn = true;
+                            }
                         }
                     }
+
                 }
                 )
             }, 500);
@@ -248,7 +275,6 @@
     }
 
     var sunkShip = false; 
-    var numOfSunkOpponentShips = 0;
     async function fireShot(cellID)
     {
         if(isPlayerTurn == true)
@@ -275,11 +301,21 @@
                         case "Miss":
                             cell.style.backgroundColor = 'Gray';
                             selectedCells.set(cellID, "M");
+
+                            isPlayerTurn = false;
+                            let statusLabel = document.getElementById('statusLabel');
+                            statusLabel.textContent= 'Opponent\'s turn';
+                            WaitUntilTurn();
                         break;
 
                         case "Hit":
                             cell.style.backgroundColor = 'Red';
                             selectedCells.set(cellID, "H");
+                            playerHits++;
+                            if(playerHits*1 == 17)
+                            {
+                                alert("You win!");
+                            }
                         break;
 
                         case "Pre-existing shot":
@@ -289,17 +325,9 @@
                         default:
                             cell.style.backgroundColor = 'Red';
                             sunkShipTypeID = message;
-                            numOfSunkOpponentShips++;
-                            if(numOfSunkOpponentShips == 5)
-                            {
-                                alert("You win");
-                            }
+                            
                         break;
                     }
-                    isPlayerTurn = false;
-                    let statusLabel = document.getElementById('statusLabel');
-                    statusLabel.textContent= 'Opponent\'s turn';
-                    WaitUntilTurn();
                 });
             }
         }

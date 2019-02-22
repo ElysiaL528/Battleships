@@ -163,6 +163,7 @@ namespace ElysiaBattleshipsWebAPI.Controllers
 
                     command.Parameters.Add(new SqlParameter("RoomID", room.RoomID));
                     command.Parameters.Add(new SqlParameter("LastShotID", room.LastShotID));
+                    command.Parameters.Add(new SqlParameter("UserID", room.PlayerID));
 
                     connection.Open();
                     var shot = command.ExecuteScalar();
